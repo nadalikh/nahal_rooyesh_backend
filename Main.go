@@ -6,19 +6,21 @@ import (
 	"net/http"
 )
 
-type element struct {
+type genericArray[T any] []T
+
+type Element struct {
 	Name            string `json:"name"`
 	EstimatedNumber uint16 `json:"estimatedNumber"`
 	Unit            string `json:"unit"`
 }
-type category struct {
+type Category struct {
 	Name     string    `json:"name"`
-	Elements []element `json:"elements"`
+	Elements []Element `json:"elements"`
 }
-type response struct {
-	Status  uint16 `json:"status"`
-	Message string `json:"message"`
-	Data    []any  `json:"data"`
+type Response[T any] struct {
+	Status  uint16          `json:"status"`
+	Message string          `json:"message"`
+	Data    genericArray[T] `json:"data"`
 }
 type land struct {
 	Length uint16 `json:"length"`
@@ -28,20 +30,50 @@ type land struct {
 func main() {
 
 	r := gin.Default()
+	r.NoRoute(func(c *gin.Context) {
+		Println("here")
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "error",
+			"message": "Resource not found",
+		})
+	})
 	r.Use(CORSMiddleware())
 	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory()) })
-	r.Use(LandValidationMiddleware()).POST("/calculate", func(c *gin.Context) { c.IndentedJSON(200, calculateElements(c)) }).Use(LandValidationMiddleware())
+	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, calculateElements(c)) })
+
 	r.Run() // listen and serve on 0.0.0.0:8080
+}
+func landValidation(land land) []string {
+	var errors []string
+
+	if land.Length%3 != 0 {
+		errors = append(errors, "مقدار طول باید ضریب ۳ باشد")
+	}
+	if land.Width%96 != 0 {
+		errors = append(errors, "مقدار عرض باید ضریب 9.6 باشد")
+	}
+	return errors
 }
 
 func LandValidationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var land land
 		err := c.ShouldBindJSON(&land)
-		if err != nil || land.Width%96 != 0 || land.Length%33 != 0 {
+		if err != nil {
 			c.AbortWithStatus(400)
 			return
 		}
+		validationErrors := landValidation(land)
+		if len(validationErrors) > 0 {
+			var errors []string
+			for _, value := range validationErrors {
+				errors = append(errors, value)
+			}
+			c.IndentedJSON(400, Response[string]{400, "خطای ولیدیشن", errors})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }
@@ -61,9 +93,9 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-func elementFactory() []category {
-	var x = []category{
-		{"لوله ها و المان ها", []element{
+func elementFactory() []Category {
+	var x = []Category{
+		{"لوله ها و المان ها", []Element{
 			{"ستون ها", 0, "عدد"},
 			{"کانکتور مرکزی", 0, "عدد"},
 			{" المان شبکه ای", 0, "عدد"},
@@ -80,12 +112,12 @@ func elementFactory() []category {
 			{" ناودان کناری", 0, "متر"},
 			{" ناودان میانی", 0, "متر"},
 		}},
-		{"هوک ها", []element{
+		{"هوک ها", []Element{
 			{"کمان دوم به ستون فرعی", 0, "عدد"},
 			{"هوک کمان مورب", 0, "عدد"},
 			{"هوک کمان اول به دوم", 0, "عدد"},
 		}},
-		{"بست ها", []element{
+		{"بست ها", []Element{
 			{"بست گاتیک", 0, "عدد"},
 			{"بست 80x 80 یک طرفه", 0, "عدد"},
 			{"بست 80x 80 دوطرفه", 0, "عدد"},
@@ -97,7 +129,7 @@ func elementFactory() []category {
 			{"بست سفت کن", 0, "عدد"},
 			{"بسط رابط H", 0, "عدد"},
 		}},
-		{"پنجره", []element{
+		{"پنجره", []Element{
 			{"رک و پینیون", 0, "عدد"},
 			{"سفت کن زیرپنجره", 0, "عدد"},
 			{"لوله شفت", 0, "عدد"},
@@ -108,13 +140,12 @@ func elementFactory() []category {
 	}
 	return x
 }
-func calculateElements(c *gin.Context) response {
-	var response = response{http.StatusBadRequest, "ارسال اشتباه", []any{}}
+func calculateElements(c *gin.Context) Response[any] {
+	var response = Response[any]{http.StatusBadRequest, "ارسال اشتباه", []any{}}
 	var land land
 	err := c.BindJSON(&land)
 	if err != nil {
 		Println(err)
-
 	}
 	Println(land.Width % 96)
 	Println(land.Length % 33)
