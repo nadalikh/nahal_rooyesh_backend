@@ -18,11 +18,10 @@ type Category struct {
 	Elements []Element `json:"elements"`
 }
 type Response[T any] struct {
-	Status  uint16          `json:"status"`
 	Message string          `json:"message"`
 	Data    genericArray[T] `json:"data"`
 }
-type land struct {
+type Land struct {
 	Length uint16 `json:"length"`
 	Width  uint16 `json:"width"`
 }
@@ -39,11 +38,11 @@ func main() {
 	})
 	r.Use(CORSMiddleware())
 	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory()) })
-	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, calculateElements(c)) })
+	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
-func landValidation(land land) []string {
+func landValidation(land Land) []string {
 	var errors []string
 
 	if land.Length%3 != 0 {
@@ -57,7 +56,7 @@ func landValidation(land land) []string {
 
 func LandValidationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var land land
+		var land Land
 		err := c.ShouldBindJSON(&land)
 		if err != nil {
 			c.AbortWithStatus(400)
@@ -69,11 +68,11 @@ func LandValidationMiddleware() gin.HandlerFunc {
 			for _, value := range validationErrors {
 				errors = append(errors, value)
 			}
-			c.IndentedJSON(400, Response[string]{400, "خطای ولیدیشن", errors})
+			c.IndentedJSON(400, Response[string]{"خطای ولیدیشن", errors})
 			c.Abort()
 			return
 		}
-
+		c.Set("land", land)
 		c.Next()
 	}
 }
@@ -100,7 +99,6 @@ func elementFactory() []Category {
 			{"کانکتور مرکزی", 0, "عدد"},
 			{" المان شبکه ای", 0, "عدد"},
 			{" خورشیدی", 0, "عدد"},
-			{" کانکتور مرکزی", 0, "عدد"},
 			{" بادبند های X", 0, "عدد"},
 			{" سفت کن قبل پنجره", 0, "عدد"},
 			{" ستون های فرعی", 0, "عدد"},
@@ -140,17 +138,20 @@ func elementFactory() []Category {
 	}
 	return x
 }
-func calculateElements(c *gin.Context) Response[any] {
-	var response = Response[any]{http.StatusBadRequest, "ارسال اشتباه", []any{}}
-	var land land
-	err := c.BindJSON(&land)
-	if err != nil {
-		Println(err)
+func completeCalculate(c *gin.Context) Response[any] {
+	var response = Response[any]{"ارسال اشتباه", []any{}}
+	if land, existed := c.Get("land"); !existed || land == nil {
+		response.Message = "خطای سیستم"
+		return response
+	} else {
+		calculateElements(land.(Land))
+		response.Data = []any{}
+		response.Message = "درخواست موفق بود"
+		return response
 	}
-	Println(land.Width % 96)
-	Println(land.Length % 33)
-	response.Data = []any{}
-	response.Status = 200
-	response.Message = "درخواست موفق بود"
-	return response
+}
+
+func calculateElements(land Land) {
+	shaft := ((land.Length / 3) + 1) * ((land.Width * 10 / 96) + 1)
+	Println(shaft)
 }
