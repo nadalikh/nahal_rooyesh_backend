@@ -13,6 +13,7 @@ type Element struct {
 	EstimatedNumber uint16 `json:"estimatedNumber"`
 	Unit            string `json:"unit"`
 }
+
 type Category struct {
 	Name     string    `json:"name"`
 	Elements []Element `json:"elements"`
@@ -37,7 +38,7 @@ func main() {
 		})
 	})
 	r.Use(CORSMiddleware())
-	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory()) })
+	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]uint16))) })
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 
 	r.Run() // listen and serve on 0.0.0.0:8080
@@ -92,95 +93,97 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-func elementFactory() []Category {
-	var x = []Category{
-		{"لوله ها و المان ها", []Element{
-			{"ستون ها", 0, "عدد"},
-			{"کانکتور مرکزی", 0, "عدد"},
-			{" المان شبکه ای", 0, "عدد"},
-			{" خورشیدی", 0, "عدد"},
-			{" بادبند های X", 0, "عدد"},
-			{" سفت کن قبل پنجره", 0, "عدد"},
-			{" ستون های فرعی", 0, "عدد"},
-			{"سر ستون کناری", 0, "عدد"},
-			{"سرستون میانی", 0, "عدد"},
-			{" پروفیل لاگینگ", 0, "متر"},
-			{" تعداد پروفیل H", 0, "عدد"},
-			{" فنر", 0, "متر"},
-			{" ناودان کناری", 0, "متر"},
-			{" ناودان میانی", 0, "متر"},
-		}},
-		{"هوک ها", []Element{
-			{"کمان دوم به ستون فرعی", 0, "عدد"},
-			{"هوک کمان مورب", 0, "عدد"},
-			{"هوک کمان اول به دوم", 0, "عدد"},
-		}},
-		{"بست ها", []Element{
-			{"بست گاتیک", 0, "عدد"},
-			{"بست 80x 80 یک طرفه", 0, "عدد"},
-			{"بست 80x 80 دوطرفه", 0, "عدد"},
-			{"بست پارویی", 0, "عدد"},
-			{"بست لامپی 4", 0, "عدد"},
-			{"بست لامپی 6", 0, "عدد"},
-			{"بست LOF", 0, "عدد"},
-			{"بست اکسل", 0, "عدد"},
-			{"بست سفت کن", 0, "عدد"},
-			{"بسط رابط H", 0, "عدد"},
-		}},
-		{"پنجره", []Element{
-			{"رک و پینیون", 0, "عدد"},
-			{"سفت کن زیرپنجره", 0, "عدد"},
-			{"لوله شفت", 0, "عدد"},
-			{"رابط لوله شفت", 0, "عدد"},
-			{"رابط درونی و بیرونی H", 0, "عدد"},
-			{"رابط کاپیج", 0, "عدد"},
-		}},
-	}
-	return x
-}
-func completeCalculate(c *gin.Context) Response[any] {
-	var response = Response[any]{"ارسال اشتباه", []any{}}
+func completeCalculate(c *gin.Context) interface{} {
 	if land, existed := c.Get("land"); !existed || land == nil {
+		var response = Response[any]{"ارسال اشتباه", []any{}}
 		response.Message = "خطای سیستم"
 		return response
 	} else {
+
+		data := make(map[string]uint16)
 		land_ := land.(Land)
-		shaft := calculateShafts(land_)
+		//done
+		data["shaft"] = calculateShafts(land_)
 		bow, chord := calculateArcAndChord(land_)
-		elementsOfchord := calculateElementsOfChord(chord)
-		khorshidi := calculateKhorshidi(chord)
-		centralConnector := calculateCentralConnector(land_)
-		hardenerBeforeWindow := calculateHardenerBeforeWindow(land_)
-		windBreaker := calculateWindBreaker(land_)
-		secondaryShaft := calculateSecondaryShaft(land_)
-		sideGutter := calculateTheSideGutter(land_)
-		centralGutter := calculateCentralGutter(land_, sideGutter)
-		sideHeadShaft := calculateTheSideHeadShaft(land_)
-		centralHeadShaft := calculateTheCentralHeadShaft(land_, sideHeadShaft)
-		bindingGathic := calculateBindingGothic(bow)
+		//
+		data["bow"] = bow
+		//
+		data["chord"] = chord
+		//
+		data["elementsOfchord"] = calculateElementsOfChord(chord)
+		//done
+
+		data["khorshidi"] = calculateKhorshidi(chord)
+		//done
+		data["centralConnector"] = calculateCentralConnector(land_)
+		//done
+		data["hardenerBeforeWindow"] = calculateHardenerBeforeWindow(land_)
+		//done
+		data["windBreaker"] = calculateWindBreaker(land_)
+		//done
+		data["secondaryShaft"] = calculateSecondaryShaft(land_)
+		//
+		data["sideGutter"] = calculateTheSideGutter(land_)
+		//
+		data["centralGutter"] = calculateCentralGutter(land_, data["sideGutter"])
+		//done
+		data["sideHeadShaft"] = calculateTheSideHeadShaft(land_)
+		//done
+		data["centralHeadShaft"] = calculateTheCentralHeadShaft(land_, data["sideHeadShaft"])
+		//
+		data["bindingGathic"] = calculateBindingGothic(bow)
+		//
 		firstBowToSecond, diagonal, secondToShaft := calculateHooks(land_)
-		windowPicket := calculateWindowPicket(bow)
-		rack := calculateRack(bow)
-		lamp6 := calculate6lamp(firstBowToSecond, secondToShaft, chord)
-		lamp4 := calculate4lamp(khorshidi, chord)
-		oneWay80X80 := calculate80X80OneWay(land_,
-			windBreaker*2,
+		//
+		data["firstBowToSecond"] = firstBowToSecond
+		//
+		data["diagonal"] = diagonal
+		//
+		data["secondToShaft"] = secondToShaft
+		//
+		data["windowPicket"] = calculateWindowPicket(bow)
+		//
+		data["rack"] = calculateRack(bow)
+		//
+		data["lamp6"] = calculate6lamp(firstBowToSecond, secondToShaft, chord)
+		//
+		data["lamp4"] = calculate4lamp(data["khorshidi"], chord)
+		//
+		data["oneWay80X80"] = calculate80X80OneWay(land_,
+			data["windBreaker"]*2,
 			secondToShaft,
 		)
-		towWay80X80 := calculate80X80TowWay(land_, shaft)
-		rowing := calculateRowing(windowPicket)
-		LOF := calculateLOF(windowPicket)
-		excel := calculateExcel(windowPicket)
-		pinion := calculatePinion(windowPicket)
-		headOfWindowH := calculateHeadOfWindowH(land_)
-		hardenerUnderTheWindow := calculateHardenerUnderTheWindow(land_)
-		shaftPipe := calculateShaftPipe(land_)
-		shaftPipeConnector := calculateShaftPipeConnector(land_)
-		hardenerBushen := calculateHardenerBushen(windowPicket)
-		H_InOutConnector := calculate_H_InOutConnector(headOfWindowH)
-		kapage := calculateKapage(rowing)
-		locking := calculateLocking(land_, sideGutter, centralGutter)
-		spring := calculateSpring(land_, headOfWindowH, locking)
+		//
+		data["towWay80X80"] = calculate80X80TowWay(land_, data["shaft"])
+		//
+		data["rowing"] = calculateRowing(data["windowPicket"])
+		//
+		data["LOF"] = calculateLOF(data["windowPicket"])
+		//
+		data["excel"] = calculateExcel(data["windowPicket"])
+		//
+		data["pinion"] = calculatePinion(data["windowPicket"])
+		//
+		data["headOfWindowH"] = calculateHeadOfWindowH(land_)
+		//
+		data["hardenerUnderTheWindow"] = calculateHardenerUnderTheWindow(land_)
+		//
+		data["shaftPipe"] = calculateShaftPipe(land_)
+		//
+		data["shaftPipeConnector"] = calculateShaftPipeConnector(land_)
+		//
+		data["hardenerBushen"] = calculateHardenerBushen(data["windowPicket"])
+		//
+		data["H_InOutConnector"] = calculate_H_InOutConnector(data["headOfWindowH"])
+		//
+		data["kapage"] = calculateKapage(data["rowing"])
+		//done
+		data["locking"] = calculateLocking(land_, data["sideGutter"], data["centralGutter"])
+		//done
+		data["spring"] = calculateSpring(land_, data["headOfWindowH"], data["locking"])
+		result := elementFactory(data)
+		var response = Response[Category]{"ارسال موفق", result}
+
 		return response
 	}
 }
