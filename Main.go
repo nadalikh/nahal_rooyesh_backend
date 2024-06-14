@@ -17,7 +17,7 @@ type Category struct {
 	Name     string    `json:"name"`
 	Elements []Element `json:"elements"`
 }
-type Response[T any] struct {
+type Response[T interface{}] struct {
 	Message string          `json:"message"`
 	Data    genericArray[T] `json:"data"`
 }
@@ -144,14 +144,43 @@ func completeCalculate(c *gin.Context) Response[any] {
 		response.Message = "خطای سیستم"
 		return response
 	} else {
-		calculateElements(land.(Land))
-		response.Data = []any{}
-		response.Message = "درخواست موفق بود"
+		land_ := land.(Land)
+		shaft := calculateShafts(land_)
+		bow, chord := calculateArcAndChord(land_)
+		elementsOfchord := calculateElementsOfChord(chord)
+		khorshidi := calculateKhorshidi(chord)
+		centralConnector := calculateCentralConnector(land_)
+		hardenerBeforeWindow := calculateHardenerBeforeWindow(land_)
+		windBreaker := calculateWindBreaker(land_)
+		secondaryShaft := calculateSecondaryShaft(land_)
+		sideGutter := calculateTheSideGutter(land_)
+		centralGutter := calculateCentralGutter(land_, sideGutter)
+		sideHeadShaft := calculateTheSideHeadShaft(land_)
+		centralHeadShaft := calculateTheCentralHeadShaft(land_, sideHeadShaft)
+		bindingGathic := calculateBindingGothic(bow)
+		firstBowToSecond, diagonal, secondToShaft := calculateHooks(land_)
+		windowPicket := calculateWindowPicket(bow)
+		rack := calculateRack(bow)
+		lamp6 := calculate6lamp(firstBowToSecond, secondToShaft, chord)
+		lamp4 := calculate4lamp(khorshidi, chord)
+		oneWay80X80 := calculate80X80OneWay(land_,
+			windBreaker*2,
+			secondToShaft,
+		)
+		towWay80X80 := calculate80X80TowWay(land_, shaft)
+		rowing := calculateRowing(windowPicket)
+		LOF := calculateLOF(windowPicket)
+		excel := calculateExcel(windowPicket)
+		pinion := calculatePinion(windowPicket)
+		headOfWindowH := calculateHeadOfWindowH(land_)
+		hardenerUnderTheWindow := calculateHardenerUnderTheWindow(land_)
+		shaftPipe := calculateShaftPipe(land_)
+		shaftPipeConnector := calculateShaftPipeConnector(land_)
+		hardenerBushen := calculateHardenerBushen(windowPicket)
+		H_InOutConnector := calculate_H_InOutConnector(headOfWindowH)
+		kapage := calculateKapage(rowing)
+		locking := calculateLocking(land_, sideGutter, centralGutter)
+		spring := calculateSpring(land_, headOfWindowH, locking)
 		return response
 	}
-}
-
-func calculateElements(land Land) {
-	shaft := ((land.Length / 3) + 1) * ((land.Width * 10 / 96) + 1)
-	Println(shaft)
 }
