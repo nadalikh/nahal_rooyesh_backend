@@ -9,9 +9,9 @@ import (
 type genericArray[T any] []T
 
 type Element struct {
-	Name            string `json:"name"`
-	EstimatedNumber uint16 `json:"estimatedNumber"`
-	Unit            string `json:"unit"`
+	Name            string  `json:"name"`
+	EstimatedNumber float32 `json:"estimatedNumber"`
+	Unit            string  `json:"unit"`
 }
 
 type Category struct {
@@ -23,8 +23,8 @@ type Response[T interface{}] struct {
 	Data    genericArray[T] `json:"data"`
 }
 type Land struct {
-	Length uint16 `json:"length"`
-	Width  uint16 `json:"width"`
+	Length float32 `json:"length"`
+	Width  float32 `json:"width"`
 }
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 		})
 	})
 	r.Use(CORSMiddleware())
-	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]uint16))) })
+	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]float32))) })
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 
 	r.Run() // listen and serve on 0.0.0.0:8080
@@ -46,11 +46,11 @@ func main() {
 func landValidation(land Land) []string {
 	var errors []string
 
-	if land.Length%3 != 0 {
-		errors = append(errors, "مقدار طول باید ضریب ۳ باشد")
+	if int(land.Length)%3 != 0 {
+		errors = append(errors, "مقدار طول باید مضرب ۳ باشد")
 	}
-	if land.Width%96 != 0 {
-		errors = append(errors, "مقدار عرض باید ضریب 9.6 باشد")
+	if int(land.Width)%96 != 0 {
+		errors = append(errors, "مقدار عرض باید مضرب 9.6 باشد")
 	}
 	return errors
 }
@@ -100,17 +100,20 @@ func completeCalculate(c *gin.Context) interface{} {
 		return response
 	} else {
 
-		data := make(map[string]uint16)
+		data := make(map[string]float32)
 		land_ := land.(Land)
 		//done
 		data["shaft"] = calculateShafts(land_)
+		sideShafts := ((land_.Length / 3) + 1) * 2
 		bow, chord := calculateArcAndChord(land_)
 		//
 		data["bow"] = bow
 		//
 		data["chord"] = chord
 		//
-		data["elementsOfchord"] = calculateElementsOfChord(chord)
+		data["267cmElements"] = calculate267cmElements(chord)
+		data["176cmElements"] = calculate176cmElements(chord)
+		data["150cmElements"] = calculate150cmElements(chord)
 		//done
 
 		data["khorshidi"] = calculateKhorshidi(chord)
@@ -125,7 +128,7 @@ func completeCalculate(c *gin.Context) interface{} {
 		//
 		data["sideGutter"] = calculateTheSideGutter(land_)
 		//
-		data["centralGutter"] = calculateCentralGutter(land_, data["sideGutter"])
+		data["centralGutter"] = calculateCentralGutter(land_)
 		//done
 		data["sideHeadShaft"] = calculateTheSideHeadShaft(land_)
 		//done
@@ -141,7 +144,7 @@ func completeCalculate(c *gin.Context) interface{} {
 		//
 		data["secondToShaft"] = secondToShaft
 		//
-		data["windowPicket"] = calculateWindowPicket(bow)
+		data["windowPicket"] = calculateWindowPicket(land_)
 		//
 		data["rack"] = calculateRack(bow)
 		//
@@ -149,12 +152,16 @@ func completeCalculate(c *gin.Context) interface{} {
 		//
 		data["lamp4"] = calculate4lamp(data["khorshidi"], chord)
 		//
-		data["oneWay80X80"] = calculate80X80OneWay(land_,
+		data["oneWay80X804cm"] = calculate80X80OneWay4cm(
 			data["windBreaker"]*2,
 			secondToShaft,
+			sideShafts,
 		)
+		data["80X80OneWay3cmBushan"] = calculate80X80OneWay3cmBushan(land_,
+			data["secondaryShaft"],
+			sideShafts)
 		//
-		data["towWay80X80"] = calculate80X80TowWay(land_, data["shaft"])
+		data["towWay80X80"] = calculate80X80TowWay(land_, data["shaft"], sideShafts)
 		//
 		data["rowing"] = calculateRowing(data["windowPicket"])
 		//
@@ -172,11 +179,15 @@ func completeCalculate(c *gin.Context) interface{} {
 		//
 		data["shaftPipeConnector"] = calculateShaftPipeConnector(land_)
 		//
-		data["hardenerBushen"] = calculateHardenerBushen(data["windowPicket"])
+		data["hardenerBushen"] = calculateHardenerBushen(land_, bow)
 		//
-		data["H_InOutConnector"] = calculate_H_InOutConnector(data["headOfWindowH"])
+		data["sideHardener"] = calculateSideHardener(land_, bow)
 		//
-		data["kapage"] = calculateKapage(data["rowing"])
+		data["headAndTailHardener"] = calculateHeadAndTailHardener(land_, bow)
+		//
+		data["H_InOutConnector"] = calculate_H_InOutConnector(land_)
+		//
+		data["golpich"] = calculateGolpich(data["rowing"])
 		//done
 		data["locking"] = calculateLocking(land_, data["sideGutter"], data["centralGutter"])
 		//done
