@@ -46,6 +46,9 @@ func main() {
 func landValidation(land Land) []string {
 	var errors []string
 
+	if int(land.Length) <= 0 || int(land.Width) <= 0 {
+		errors = append(errors, "مقدار طول یا عرض باید بزرگتر از 0 باشند.")
+	}
 	if int(land.Length)%3 != 0 {
 		errors = append(errors, "مقدار طول باید مضرب ۳ باشد")
 	}
@@ -190,6 +193,20 @@ func completeCalculate(c *gin.Context) interface{} {
 		data["golpich"] = calculateGolpich(data["rowing"])
 		//done
 		data["locking"] = calculateLocking(land_, data["sideGutter"], data["centralGutter"])
+		data["horseShoe"] = calculateHorseShoe(data["secondaryShaft"])
+		data["gableScrew"] = calculateGableScrew(
+			data["bindingGathic"]+
+				data["oneWay80X804cm"]+
+				data["80X80OneWay3cmBushan"]+
+				data["towWay80X80"]+
+				data["lamp4"]+
+				data["lamp6"]+
+				data["hardenerBushen"]+
+				data["sideHardener"]+
+				data["headAndTailHardener"]+
+				data["H_InOutConnector"]+
+				data["LOF"]+
+				data["excel"], data["locking"])
 		//done
 		data["spring"] = calculateSpring(land_, data["headOfWindowH"], data["locking"])
 		result := elementFactory(data)

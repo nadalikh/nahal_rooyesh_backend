@@ -140,6 +140,12 @@ func calculateSpring(land Land, headOfWindowH float32, locking float32) float32 
 	return ((land.Width * 10 / 96) * 2 * 11) +
 		(headOfWindowH * 6) + locking
 }
+func calculateHorseShoe(secondaryShaft float32) float32 {
+	return secondaryShaft
+}
+func calculateGableScrew(sumOfAllFastening float32, locking float32) float32 {
+	return sumOfAllFastening + (locking / 0.3)
+}
 func getNumber(resultOfCalculates map[string]float32, key string) float32 {
 	if val, ok := resultOfCalculates[key]; ok {
 		return val
@@ -186,7 +192,9 @@ func elementFactory(resultOfCalculates map[string]float32) []Category {
 			{"بست سفت کن و بوشن", getNumber(resultOfCalculates, "hardenerBushen"), "عدد"},
 			{"بست سفت کن کنار", getNumber(resultOfCalculates, "sideHardener"), "عدد"},
 			{"بست سفت کن سر و ته", getNumber(resultOfCalculates, "headAndTailHardener"), "عدد"},
-			{"بسط رابط درونی وبیرونی H", getNumber(resultOfCalculates, "H_InOutConnector"), "عدد"},
+			{"پیچ نعل اسبی", getNumber(resultOfCalculates, "horseShoe"), "عدد"},
+			{"پیچ شیروانی", getNumber(resultOfCalculates, "gableScrew"), "عدد"},
+			{"بست رابط درونی وبیرونی H", getNumber(resultOfCalculates, "H_InOutConnector"), "عدد"},
 		}},
 		{"پنجره", []Element{
 			{"رک", getNumber(resultOfCalculates, "rack"), "عدد"},
