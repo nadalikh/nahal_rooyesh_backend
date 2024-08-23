@@ -1,7 +1,6 @@
 package main
 
 import (
-	. "fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -31,7 +30,6 @@ func main() {
 
 	r := gin.Default()
 	r.NoRoute(func(c *gin.Context) {
-		Println("here")
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
 			"message": "Resource not found",

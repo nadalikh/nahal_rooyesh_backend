@@ -1,7 +1,5 @@
 package main
 
-import . "fmt"
-
 func calculateShafts(land Land) float32 {
 	shaft := ((land.Length / 3) + 1) * ((land.Width * 10 / 96) + 1)
 	return shaft
@@ -29,8 +27,6 @@ func calculateKhorshidi(chord float32) float32 {
 }
 func calculateCentralConnector(land Land) float32 {
 	x := (land.Length / 6) * (land.Width * 10 / 96)
-	Println(land.Length / 6)
-	Println(land.Width * 10 / 96)
 	return x
 }
 func calculateHardenerBeforeWindow(land Land) float32 {
