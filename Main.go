@@ -160,7 +160,7 @@ func completeCalculate(c *gin.Context) interface{} {
 			secondToShaft,
 			sideShafts,
 		)
-		data["80X80OneWay3cmBushan"] = calculate80X80OneWay3cmBushan(land_,
+		data["OneWay80X803cmBushan"] = calculateOneWay80X803cmBushan(land_,
 			data["secondaryShaft"],
 			sideShafts)
 		//
@@ -197,7 +197,7 @@ func completeCalculate(c *gin.Context) interface{} {
 		data["gableScrew"] = calculateGableScrew(
 			data["bindingGathic"]+
 				data["oneWay80X804cm"]+
-				data["80X80OneWay3cmBushan"]+
+				data["OneWay80X803cmBushan"]+
 				data["towWay80X80"]+
 				data["lamp4"]+
 				data["lamp6"]+
@@ -209,6 +209,22 @@ func completeCalculate(c *gin.Context) interface{} {
 				data["excel"], data["locking"])
 		//done
 		data["spring"] = calculateSpring(land_, data["headOfWindowH"], data["locking"])
+		data["bolt_2cm"],
+			data["bolt_3cm"],
+			data["bolt_4cm"],
+			data["bolt_5cm"],
+			data["bolt_6cm"],
+			data["bolt_10cm"],
+			data["bolt_halfThread"] = calculateBoltAndNut(
+			data["bindingGathic"], data["excel"],
+			data["rowing"], data["golpich"],
+			data["H_InOutConnector"], data["lamp4"],
+			data["lamp6"], data["horseShoe"],
+			data["centralHeadShaft"], data["sideHeadShaft"],
+			data["oneWay80X804cm"], data["OneWay80X803cmBushan"],
+			data["towWay80X80"], data["windowPicket"],
+		)
+
 		result := elementFactory(data)
 		var response = Response[Category]{"ارسال موفق", result}
 

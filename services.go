@@ -85,7 +85,7 @@ func calculate80X80OneWay4cm(windbreakerShafts float32, secondToShaft float32, s
 		(sideShafts * 2) -
 		(sideRows * 2)
 }
-func calculate80X80OneWay3cmBushan(land Land, secondaryShafts float32, sideShafts float32) float32 {
+func calculateOneWay80X803cmBushan(land Land, secondaryShafts float32, sideShafts float32) float32 {
 	return (sideShafts * 2) + ((land.Width / 96 * 10) + 1) + secondaryShafts*2
 }
 func calculate80X80TowWay(land Land, shaft float32, sideShafts float32) float32 {
@@ -146,6 +146,50 @@ func calculateHorseShoe(secondaryShaft float32) float32 {
 func calculateGableScrew(sumOfAllFastening float32, locking float32) float32 {
 	return sumOfAllFastening + (locking / 0.3)
 }
+func calculateBoltAndNut(bindingGathic float32,
+	excel float32, rowing float32,
+	golpich float32, H_InOutConnector float32,
+	lamp4 float32, lamp6 float32,
+	horseShoe float32, centralHeadShaft float32, sideHeadShaft float32,
+	oneWay80X804cm float32, OneWay80X803cmBushan float32,
+	towWay80X80 float32, windowPicket float32,
+) (_2cm float32, _3cm float32, _4cm float32, _5cm float32, _6cm float32, _10cm float32, halfThread float32) {
+	_2cm, _3cm, _4cm, _5cm, _6cm, _10cm, halfThread = 0, 0, 0, 0, 0, 0, 0
+	//For Gathik
+	_2cm += 2 * bindingGathic
+	_3cm += 4 * bindingGathic
+	_4cm += 1 * bindingGathic
+	_6cm += 2 * bindingGathic
+	//excel
+	_5cm += 2 * excel
+	//rowing
+	_5cm += 2 * rowing
+	//Golpich
+	_4cm += 3 * golpich
+	//H connector
+	_4cm += 3 * H_InOutConnector
+	//Lamp 4
+	_6cm += lamp4
+	//lamp 6
+	_5cm += lamp6
+	//horse shoe
+	_10cm += 2 * horseShoe
+	//central head shaft
+	_3cm += 12 * centralHeadShaft
+	_4cm += 4 * centralHeadShaft
+	//side head shaft
+	_3cm += 8 * sideHeadShaft
+	_4cm += 3 * sideHeadShaft
+	//one way connector
+	_3cm += oneWay80X804cm
+	_3cm += OneWay80X803cmBushan
+	//tow-way connector
+	_3cm += 2 * towWay80X80
+	//window picket
+	_5cm += 2 * windowPicket
+	halfThread += 1 * windowPicket
+	return
+}
 func getNumber(resultOfCalculates map[string]float32, key string) float32 {
 	if val, ok := resultOfCalculates[key]; ok {
 		return val
@@ -185,7 +229,7 @@ func elementFactory(resultOfCalculates map[string]float32) []Category {
 		{"بست ها", []Element{
 			{"بست گاتیک", getNumber(resultOfCalculates, "bindingGathic"), "عدد"},
 			{"بست 80x 80 یک طرفه 4cm", getNumber(resultOfCalculates, "oneWay80X804cm"), "عدد"},
-			{"بست 80x 80 یک طرفه 3cm+ بوشن", getNumber(resultOfCalculates, "80X80OneWay3cmBushan"), "عدد"},
+			{"بست 80x 80 یک طرفه 3cm+ بوشن", getNumber(resultOfCalculates, "OneWay80X803cmBushan"), "عدد"},
 			{"بست 80x 80 دوطرفه", getNumber(resultOfCalculates, "towWay80X80"), "عدد"},
 			{"بست لامپی 4", getNumber(resultOfCalculates, "lamp4"), "عدد"},
 			{"بست لامپی 6", getNumber(resultOfCalculates, "lamp6"), "عدد"},
@@ -208,6 +252,15 @@ func elementFactory(resultOfCalculates map[string]float32) []Category {
 			{"بست LOF", getNumber(resultOfCalculates, "LOF"), "عدد"},
 			{"بست اکسل", getNumber(resultOfCalculates, "excel"), "عدد"},
 			{"بست پارویی", getNumber(resultOfCalculates, "rowing"), "عدد"},
+		}},
+		{"پیچ و مهره", []Element{
+			{"۲ سانتی", getNumber(resultOfCalculates, "bolt_2cm"), "عدد"},
+			{"۳ سانتی", getNumber(resultOfCalculates, "bolt_3cm"), "عدد"},
+			{"۴ سانتی", getNumber(resultOfCalculates, "bolt_4cm"), "عدد"},
+			{"۵ سانتی", getNumber(resultOfCalculates, "bolt_5cm"), "عدد"},
+			{"۶ سانتی", getNumber(resultOfCalculates, "bolt_6cm"), "عدد"},
+			{"۱۰ سانتی", getNumber(resultOfCalculates, "bolt_10cm"), "عدد"},
+			{"نیم رزوه با مهره کاسه نمدی", getNumber(resultOfCalculates, "bolt_halfThread"), "عدد"},
 		}},
 	}
 	return x
