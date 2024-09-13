@@ -27,6 +27,7 @@ type Land struct {
 }
 
 func main() {
+	defer db.Close()
 
 	r := gin.Default()
 	r.NoRoute(func(c *gin.Context) {
@@ -38,6 +39,8 @@ func main() {
 	r.Use(CORSMiddleware())
 	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]float32))) })
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
+	r.GET("/khorshidi-properties", func(c *gin.Context) { c.IndentedJSON(200, getKhorishidiProperties()) })
+	r.POST("/khorshidi-fabric", func(c *gin.Context) { c.IndentedJSON(200, addKhorshidiFabricPrice(c)) })
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
