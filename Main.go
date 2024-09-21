@@ -45,7 +45,7 @@ func main() {
 	r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
 	r.GET("/khorshidi-fabric", func(c *gin.Context) { c.IndentedJSON(200, getKhorshidiFabric(c)) })
 
-	r.Run() // listen and serve on 0.0.0.0:8080
+	r.Run(":8070") // listen and serve on 0.0.0.0:8080
 }
 func landValidation(land Land) []string {
 	var errors []string
