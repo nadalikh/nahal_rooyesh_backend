@@ -41,6 +41,7 @@ func main() {
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 	r.GET("/khorshidi-properties", func(c *gin.Context) { c.IndentedJSON(200, getKhorishidiProperties()) })
 	r.POST("/khorshidi-fabric", addKhorshidiFabricPrice)
+	r.DELETE("/khorshidi-fabric/:id", removeKhorshidiFabricPrice)
 	r.POST("/warm", func(c *gin.Context) { c.IndentedJSON(200, addWarm(c)) })
 	r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
 	r.GET("/khorshidi-fabric", func(c *gin.Context) { c.IndentedJSON(200, getKhorshidiFabric(c)) })

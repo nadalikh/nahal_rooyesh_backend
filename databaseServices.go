@@ -24,8 +24,8 @@ type warm struct {
 }
 
 func init() {
-	//db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
-	db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
+	db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
+	//db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
@@ -153,4 +153,13 @@ func getKhorshidiFabric(c *gin.Context) interface{} {
 		list = append(list, data)
 	}
 	return list
+}
+func removeKhorshidiFabricPrice(c *gin.Context) {
+	id := c.Param("id")
+	fmt.Println(id)
+	_, err = db.Query("delete from khorshidi_fabric where id = ?", id)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
 }
