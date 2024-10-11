@@ -11,6 +11,8 @@ type Element struct {
 	Name            string  `json:"name"`
 	EstimatedNumber float32 `json:"estimatedNumber"`
 	Unit            string  `json:"unit"`
+	Price           float32 `json:"price"`
+	Config          string  `json:"config"`
 }
 
 type Category struct {
@@ -36,8 +38,9 @@ func main() {
 			"message": "Resource not found",
 		})
 	})
+	var emptyConfig map[string]string
 	r.Use(CORSMiddleware())
-	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]float32))) })
+	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]float32), &emptyConfig)) })
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 	r.GET("/khorshidi-properties", func(c *gin.Context) { c.IndentedJSON(200, getKhorishidiProperties()) })
 	r.POST("/khorshidi-fabric", addKhorshidiFabricPrice)
@@ -107,7 +110,7 @@ func completeCalculate(c *gin.Context) interface{} {
 		response.Message = "خطای سیستم"
 		return response
 	} else {
-
+		configs := loadAllConfigs()
 		data := make(map[string]float32)
 		land_ := land.(Land)
 		//done
@@ -230,7 +233,7 @@ func completeCalculate(c *gin.Context) interface{} {
 			data["towWay80X80"], data["windowPicket"],
 		)
 
-		result := elementFactory(data)
+		result := elementFactory(data, configs)
 		var response = Response[Category]{"ارسال موفق", result}
 
 		return response

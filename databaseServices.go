@@ -22,15 +22,38 @@ type warm struct {
 	ID    int `json:"id"`
 	Price int `json:"price"`
 }
+type Config struct {
+	ID   int    `json:"id"`
+	Slug string `json:"element_slug"`
+	Cnf  string `json:"config_json"`
+}
 
 func init() {
-	//db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
-	db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
+	db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
+	//db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
 		panic(err.Error())
 	}
+}
+func loadAllConfigs() *map[string]string {
+	result, err := db.Query("select * from config")
+	var cnf Config
+	var configs map[string]string
+	configs = make(map[string]string)
+	if err != nil {
+		panic(err)
+	}
+	for result.Next() {
+		err = result.Scan(&cnf.ID, &cnf.Slug, &cnf.Cnf)
+		if err != nil {
+			panic(err)
+		}
+		configs[cnf.Slug] = cnf.Cnf
+	}
+	return &configs
+
 }
 func getKhorishidiProperties() interface{} {
 	result, err := db.Query("SELECT * FROM khorshidi_properties")
@@ -162,4 +185,24 @@ func removeKhorshidiFabricPrice(c *gin.Context) {
 		panic(err)
 	}
 	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
+}
+func getWarmPrice(slug string) float32 {
+	result, err := db.Query("select id, price from warm where element_slug = ?", slug)
+	var warm warm
+	if err != nil {
+		panic(err)
+	}
+	for result.Next() {
+		err := result.Scan(&warm.ID, &warm.Price)
+		if err != nil {
+			panic(err)
+		}
+		break
+	}
+	if warm.Price > 0 {
+		return float32(warm.Price)
+	} else {
+		return 0
+	}
+
 }
