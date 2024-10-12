@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
 )
 
 func calculateShafts(land Land) float32 {
@@ -197,19 +199,56 @@ func getNumber(resultOfCalculates map[string]float32, key string) float32 {
 		return 0
 	}
 }
-func getPrice(config, slug string, quantity float32) float32 {
+func getPrice(config interface{}, slug string, quantity float32) float32 {
 	if config != "" {
 		var cnf map[string]interface{}
-		err := json.Unmarshal([]byte(config), &cnf)
-		if err != nil {
-			panic(err)
+		switch config.(type) {
+		case string:
+			err := json.Unmarshal([]byte(config.(string)), &cnf)
+			if err != nil {
+				panic(err)
+			}
+			break
+		default:
+
+			temp, err := json.Marshal(config)
+			if err != nil {
+				panic(err)
+			}
+			err = json.Unmarshal(temp, &cnf)
+			if err != nil {
+				panic(err)
+			}
 		}
-		switch cnf["galvanize"] {
-		case "warm":
-			return quantity * getWarmPrice(slug)
+
+		switch slug {
+		case "khorshidi":
+			switch cnf["galvanize"] {
+			case "warm":
+				fmt.Println("warm")
+				return quantity * getWarmPrice(slug)
+			case "fabric":
+				fmt.Println("fabric")
+
+				return getKhorshidiFabricPrice(cnf)
+			}
 		}
+
 	}
 	return 0
+}
+func getPriceFromRequest(c *gin.Context) float32 {
+	var configDTO struct {
+		ElementSlug string      `json:"element_slug"`
+		Config      interface{} `json:"config"`
+		Quantity    float32     `json:"quantity"`
+	}
+	err := c.BindJSON(&configDTO)
+	if err != nil {
+		panic(err)
+	}
+
+	return getPrice(configDTO.Config, configDTO.ElementSlug, configDTO.Quantity)
 }
 func elementFactory(resultOfCalculates map[string]float32, configs *map[string]string) []Category {
 	khorshidiNumber := getNumber(resultOfCalculates, "khorshidi")

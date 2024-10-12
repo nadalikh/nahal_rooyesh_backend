@@ -204,5 +204,14 @@ func getWarmPrice(slug string) float32 {
 	} else {
 		return 0
 	}
+}
+func getKhorshidiFabricPrice(cnf map[string]interface{}) float32 {
+	fabricConfig := cnf["fabric"]
 
+	fmt.Println("test", fabricConfig)
+	if err != nil {
+		panic(err)
+	}
+	return 0
+	//result, err := db.Query("select price from khorshidi_fabric where digonal_id = ? and thickness_id = ?", DTOConfig.fabric.)
 }
