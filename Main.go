@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+const (
+	IRON_DENSITY     = 7.874 //CM
+	KHORSHIDI_LENGTH = 250   //CM
+)
+
 type genericArray[T any] []T
 
 type Element struct {
@@ -45,7 +50,7 @@ func main() {
 	r.GET("/khorshidi-properties", func(c *gin.Context) { c.IndentedJSON(200, getKhorishidiProperties()) })
 	r.POST("/khorshidi-fabric", addKhorshidiFabricPrice)
 	r.DELETE("/khorshidi-fabric/:id", removeKhorshidiFabricPrice)
-	r.POST("/warm", func(c *gin.Context) { c.IndentedJSON(200, addWarm(c)) })
+	r.POST("/fabric", func(c *gin.Context) { c.IndentedJSON(200, addWarm(c)) })
 	r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
 	r.GET("/khorshidi-fabric", func(c *gin.Context) { c.IndentedJSON(200, getKhorshidiFabric(c)) })
 	r.POST("/price", func(c *gin.Context) { c.IndentedJSON(200, getPriceFromRequest(c)) })

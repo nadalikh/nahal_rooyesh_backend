@@ -116,7 +116,7 @@ func addWarm(c *gin.Context) interface{} {
 		panic(err)
 	}
 	fmt.Println(warmPriceDTO.ElementSlug)
-	result, err := db.Query("select * from warm where element_slug = ?", warmPriceDTO.ElementSlug)
+	result, err := db.Query("select * from fabric where element_slug = ?", warmPriceDTO.ElementSlug)
 	if err != nil {
 		panic(err)
 	}
@@ -126,10 +126,10 @@ func addWarm(c *gin.Context) interface{} {
 		break
 	}
 	if found {
-		_, err = db.Query("update warm set price = ? where element_slug = ? ;", warmPriceDTO.Price, warmPriceDTO.ElementSlug)
+		_, err = db.Query("update fabric set price = ? where element_slug = ? ;", warmPriceDTO.Price, warmPriceDTO.ElementSlug)
 
 	} else {
-		_, err = db.Query("insert into warm (element_slug, price) values (?, ?);", warmPriceDTO.ElementSlug, warmPriceDTO.Price)
+		_, err = db.Query("insert into fabric (element_slug, price) values (?, ?);", warmPriceDTO.ElementSlug, warmPriceDTO.Price)
 
 	}
 	if err != nil {
@@ -145,7 +145,7 @@ func getWarm(c *gin.Context) interface{} {
 	params := c.Request.URL.Query()
 	elementSlug := params["element_slug"][0]
 	var warm warm
-	result, err := db.Query("select id, price from warm where element_slug = ?", elementSlug)
+	result, err := db.Query("select id, price from fabric where element_slug = ?", elementSlug)
 	if err != nil {
 		panic(err)
 	}
@@ -187,7 +187,7 @@ func removeKhorshidiFabricPrice(c *gin.Context) {
 	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
 }
 func getWarmPrice(slug string) float32 {
-	result, err := db.Query("select id, price from warm where element_slug = ?", slug)
+	result, err := db.Query("select id, price from fabric where element_slug = ?", slug)
 	var warm warm
 	if err != nil {
 		panic(err)
@@ -205,13 +205,27 @@ func getWarmPrice(slug string) float32 {
 		return 0
 	}
 }
-func getKhorshidiFabricPrice(cnf map[string]interface{}) float32 {
-	fabricConfig := cnf["fabric"]
+func getKhorshidiWarmPrice(cnf map[string]interface{}) float32 {
+	fabricConfig := cnf["fabric"].(map[string]interface{})
+	result, err := db.Query("select price, slug, value from khorshidi_warm kf inner join  khorshidi_properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id = ? and diagonal_id=?", fabricConfig["thickness_id"], fabricConfig["diagonal_id"])
+	var price struct {
+		price float32
+		slug  string
+		value float32
+	}
+	var multipled float32
+	multipled = 1
+	for result.Next() {
+		err := result.Scan(&price.price, &price.slug, &price.value)
+		if err != nil {
+			panic(err)
+		}
+		multipled *= price.value
 
-	fmt.Println("test", fabricConfig)
+	}
 	if err != nil {
 		panic(err)
 	}
-	return 0
+	return price.price * KHORSHIDI_LENGTH * multipled * fabricConfig["quantity"].(float32)
 	//result, err := db.Query("select price from khorshidi_fabric where digonal_id = ? and thickness_id = ?", DTOConfig.fabric.)
 }

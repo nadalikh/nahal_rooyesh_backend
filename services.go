@@ -224,13 +224,12 @@ func getPrice(config interface{}, slug string, quantity float32) float32 {
 		switch slug {
 		case "khorshidi":
 			switch cnf["galvanize"] {
-			case "warm":
-				fmt.Println("warm")
-				return quantity * getWarmPrice(slug)
 			case "fabric":
+				return quantity * getWarmPrice(slug)
+			case "warm":
 				fmt.Println("fabric")
 
-				return getKhorshidiFabricPrice(cnf)
+				return getKhorshidiWarmPrice(cnf)
 			}
 		}
 
