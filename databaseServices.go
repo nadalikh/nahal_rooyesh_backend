@@ -29,8 +29,8 @@ type Config struct {
 }
 
 func init() {
-	//db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
-	db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
+	db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
+	//db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
@@ -80,7 +80,7 @@ func addKhorshidiFabricPrice(c *gin.Context) {
 		ThicknessId int `json:"thickness_id"`
 		Price       int `json:"price"`
 	}
-	result, err := db.Query("select * from khorshidi_fabric")
+	result, err := db.Query("select * from khorshidi_warm")
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +99,7 @@ func addKhorshidiFabricPrice(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	_, err = db.Query("insert into khorshidi_fabric (diagonal_id, thickness_id, price) values (?, ?, ?);", priceDTO.Diagonal, priceDTO.Thickness, priceDTO.Price)
+	_, err = db.Query("insert into khorshidi_warm (diagonal_id, thickness_id, price) values (?, ?, ?);", priceDTO.Diagonal, priceDTO.Thickness, priceDTO.Price)
 	if err != nil {
 		panic(err)
 	}
@@ -165,7 +165,7 @@ func getKhorshidiFabric(c *gin.Context) interface{} {
 		ThicknessId int `json:"thickness_id"`
 		Price       int `json:"price"`
 	}
-	result, err := db.Query("select * from khorshidi_fabric")
+	result, err := db.Query("select * from khorshidi_warm")
 	if err != nil {
 		panic(err)
 	}
@@ -180,7 +180,7 @@ func getKhorshidiFabric(c *gin.Context) interface{} {
 func removeKhorshidiFabricPrice(c *gin.Context) {
 	id := c.Param("id")
 	fmt.Println(id)
-	_, err = db.Query("delete from khorshidi_fabric where id = ?", id)
+	_, err = db.Query("delete from khorshidi_warm where id = ?", id)
 	if err != nil {
 		panic(err)
 	}
