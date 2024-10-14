@@ -18,6 +18,7 @@ type Element struct {
 	Unit            string  `json:"unit"`
 	Price           float32 `json:"price"`
 	Config          string  `json:"config"`
+	Slug            string  `json:"slug"`
 }
 
 type Category struct {

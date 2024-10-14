@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: green_house
 -- ------------------------------------------------------
--- Server version	8.0.39-0ubuntu0.20.04.1
+-- Server version	8.0.39-0ubuntu0.24.04.2
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -37,7 +37,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'khorshidi','{\"galvanize\":\"warm\", \"fabric\" : {\"diagonal_id\":1, \"thickness_id\":2}}');
+INSERT INTO `config` VALUES (1,'khorshidi','{\"galvanize\":\"fabric\", \"warm\" : {\"diagonal_id\":1, \"thickness_id\":3, \"quantity\": 10}}');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -130,4 +130,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-13 21:00:51
+-- Dump completed on 2024-10-14 15:41:15

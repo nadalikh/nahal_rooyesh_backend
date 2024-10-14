@@ -18,7 +18,7 @@ type properties struct {
 	Slug  string `json:"slug"`
 }
 
-type warm struct {
+type fabric struct {
 	ID    int `json:"id"`
 	Price int `json:"price"`
 }
@@ -29,8 +29,8 @@ type Config struct {
 }
 
 func init() {
-	db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
-	//db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
+	//db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
+	db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
@@ -144,19 +144,19 @@ func addWarm(c *gin.Context) interface{} {
 func getWarm(c *gin.Context) interface{} {
 	params := c.Request.URL.Query()
 	elementSlug := params["element_slug"][0]
-	var warm warm
+	var fabric fabric
 	result, err := db.Query("select id, price from fabric where element_slug = ?", elementSlug)
 	if err != nil {
 		panic(err)
 	}
 	for result.Next() {
-		err = result.Scan(&warm.ID, &warm.Price)
+		err = result.Scan(&fabric.ID, &fabric.Price)
 		break
 	}
 	if err != nil {
 		panic(err)
 	}
-	return warm
+	return fabric
 }
 func getKhorshidiFabric(c *gin.Context) interface{} {
 	type khorshidiFabricPricDTO struct {
@@ -186,27 +186,29 @@ func removeKhorshidiFabricPrice(c *gin.Context) {
 	}
 	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
 }
-func getWarmPrice(slug string) float32 {
+func getFabricPrice(slug string) float32 {
 	result, err := db.Query("select id, price from fabric where element_slug = ?", slug)
-	var warm warm
+	var fabric fabric
 	if err != nil {
 		panic(err)
 	}
 	for result.Next() {
-		err := result.Scan(&warm.ID, &warm.Price)
+		err := result.Scan(&fabric.ID, &fabric.Price)
 		if err != nil {
 			panic(err)
 		}
 		break
 	}
-	if warm.Price > 0 {
-		return float32(warm.Price)
+	if fabric.Price > 0 {
+		return float32(fabric.Price)
 	} else {
 		return 0
 	}
 }
 func getKhorshidiWarmPrice(cnf map[string]interface{}) float32 {
 	fabricConfig := cnf["fabric"].(map[string]interface{})
+	fmt.Println(fabricConfig)
+
 	result, err := db.Query("select price, slug, value from khorshidi_warm kf inner join  khorshidi_properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id = ? and diagonal_id=?", fabricConfig["thickness_id"], fabricConfig["diagonal_id"])
 	var price struct {
 		price float32
@@ -223,9 +225,10 @@ func getKhorshidiWarmPrice(cnf map[string]interface{}) float32 {
 		multipled *= price.value
 
 	}
+	fmt.Println(price.price, multipled, float32(fabricConfig["quantity"].(float64)))
 	if err != nil {
 		panic(err)
 	}
-	return price.price * KHORSHIDI_LENGTH * multipled * fabricConfig["quantity"].(float32)
+	return price.price * KHORSHIDI_LENGTH * multipled * float32(fabricConfig["quantity"].(float64))
 	//result, err := db.Query("select price from khorshidi_fabric where digonal_id = ? and thickness_id = ?", DTOConfig.fabric.)
 }
