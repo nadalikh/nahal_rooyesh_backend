@@ -29,8 +29,8 @@ type Config struct {
 }
 
 func init() {
-	//db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
-	db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
+	db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
+	//db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
@@ -206,10 +206,8 @@ func getFabricPrice(slug string) float32 {
 	}
 }
 func getKhorshidiWarmPrice(cnf map[string]interface{}) float32 {
-	fabricConfig := cnf["fabric"].(map[string]interface{})
-	fmt.Println(fabricConfig)
-
-	result, err := db.Query("select price, slug, value from khorshidi_warm kf inner join  khorshidi_properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id = ? and diagonal_id=?", fabricConfig["thickness_id"], fabricConfig["diagonal_id"])
+	warmConfig := cnf["warm"].(map[string]interface{})
+	result, err := db.Query("select price, slug, value from khorshidi_warm kf inner join  khorshidi_properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id = ? and diagonal_id=?", warmConfig["thickness_id"], warmConfig["diagonal_id"])
 	var price struct {
 		price float32
 		slug  string
@@ -225,10 +223,10 @@ func getKhorshidiWarmPrice(cnf map[string]interface{}) float32 {
 		multipled *= price.value
 
 	}
-	fmt.Println(price.price, multipled, float32(fabricConfig["quantity"].(float64)))
 	if err != nil {
 		panic(err)
 	}
-	return price.price * KHORSHIDI_LENGTH * multipled * float32(fabricConfig["quantity"].(float64))
+	fmt.Println(price.price * KHORSHIDI_LENGTH * multipled * 3.14)
+	return price.price * KHORSHIDI_LENGTH * multipled * 3.14
 	//result, err := db.Query("select price from khorshidi_fabric where digonal_id = ? and thickness_id = ?", DTOConfig.fabric.)
 }

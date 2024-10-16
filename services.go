@@ -229,7 +229,7 @@ func getPrice(config interface{}, slug string, quantity float32) float32 {
 				fmt.Println(slug)
 				return quantity * getFabricPrice(slug) * KHORSHIDI_LENGTH
 			case "warm":
-				return getKhorshidiWarmPrice(cnf)
+				return quantity * getKhorshidiWarmPrice(cnf)
 			}
 		}
 
@@ -247,7 +247,6 @@ func getPriceFromRequest(c *gin.Context) interface{} {
 		panic(err)
 	}
 	price := getPrice(configDTO.Config, configDTO.ElementSlug, configDTO.Quantity)
-	fmt.Println(price)
 	return struct {
 		Price float32 `json:"price"`
 	}{Price: price}
