@@ -49,11 +49,10 @@ func main() {
 	r.GET("/categories", func(c *gin.Context) { c.IndentedJSON(200, elementFactory(make(map[string]float32), &emptyConfig)) })
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 	r.GET("/khorshidi-properties", func(c *gin.Context) { c.IndentedJSON(200, getKhorishidiProperties()) })
-	r.POST("/khorshidi-fabric", addKhorshidiFabricPrice)
-	r.DELETE("/khorshidi-fabric/:id", removeKhorshidiFabricPrice)
-	r.POST("/fabric", func(c *gin.Context) { c.IndentedJSON(200, addWarm(c)) })
+	r.POST("/fabric", addFabric)
+	r.DELETE("/fabric/:id", removeFabricPrice)
 	r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
-	r.GET("/khorshidi-fabric", func(c *gin.Context) { c.IndentedJSON(200, getKhorshidiFabric(c)) })
+	r.GET("/getFabric", func(c *gin.Context) { c.IndentedJSON(200, getKhorshidiFabric(c)) })
 	r.POST("/price", func(c *gin.Context) { c.IndentedJSON(200, getPriceFromRequest(c)) })
 
 	r.Run(":8030") // listen and serve on 0.0.0.0:8080

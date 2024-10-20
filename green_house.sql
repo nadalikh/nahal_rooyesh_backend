@@ -37,7 +37,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'khorshidi','{\"galvanize\":\"fabric\", \"warm\" : {\"diagonal_id\":1, \"thickness_id\":3, \"quantity\": 10}}');
+INSERT INTO `config` VALUES (1,'khorshidi','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3}}');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -52,7 +52,13 @@ CREATE TABLE `fabric` (
   `id` int NOT NULL AUTO_INCREMENT,
   `element_slug` varchar(255) DEFAULT NULL,
   `price` int DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `thickness_id` int DEFAULT NULL,
+  `diagonal_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fabric_properties_id_fk` (`diagonal_id`),
+  KEY `fabric_properties_id_fk_2` (`thickness_id`),
+  CONSTRAINT `fabric_properties_id_fk` FOREIGN KEY (`diagonal_id`) REFERENCES `properties` (`id`),
+  CONSTRAINT `fabric_properties_id_fk_2` FOREIGN KEY (`thickness_id`) REFERENCES `properties` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -62,18 +68,18 @@ CREATE TABLE `fabric` (
 
 LOCK TABLES `fabric` WRITE;
 /*!40000 ALTER TABLE `fabric` DISABLE KEYS */;
-INSERT INTO `fabric` VALUES (1,'khorshidi',1000);
+INSERT INTO `fabric` VALUES (1,'khorshidi',2000,3,1);
 /*!40000 ALTER TABLE `fabric` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `khorshidi_properties`
+-- Table structure for table `properties`
 --
 
-DROP TABLE IF EXISTS `khorshidi_properties`;
+DROP TABLE IF EXISTS `properties`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `khorshidi_properties` (
+CREATE TABLE `properties` (
   `id` int NOT NULL AUTO_INCREMENT,
   `slug` varchar(200) DEFAULT NULL,
   `value` float DEFAULT NULL,
@@ -82,43 +88,44 @@ CREATE TABLE `khorshidi_properties` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `khorshidi_properties`
+-- Dumping data for table `properties`
 --
 
-LOCK TABLES `khorshidi_properties` WRITE;
-/*!40000 ALTER TABLE `khorshidi_properties` DISABLE KEYS */;
-INSERT INTO `khorshidi_properties` VALUES (1,'diagonal',25),(2,'diagonal',32),(3,'thickness',1.5),(4,'thickness',2);
-/*!40000 ALTER TABLE `khorshidi_properties` ENABLE KEYS */;
+LOCK TABLES `properties` WRITE;
+/*!40000 ALTER TABLE `properties` DISABLE KEYS */;
+INSERT INTO `properties` VALUES (1,'diagonal',2.5),(2,'diagonal',3.2),(3,'thickness',0.15),(4,'thickness',0.2);
+/*!40000 ALTER TABLE `properties` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `khorshidi_warm`
+-- Table structure for table `warm`
 --
 
-DROP TABLE IF EXISTS `khorshidi_warm`;
+DROP TABLE IF EXISTS `warm`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `khorshidi_warm` (
+CREATE TABLE `warm` (
   `id` int NOT NULL AUTO_INCREMENT,
   `diagonal_id` int DEFAULT NULL,
   `thickness_id` int DEFAULT NULL,
   `price` int DEFAULT NULL,
+  `element_slug` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `khorshidi_fabric_khorshidi_properties_null_fk_digonal` (`diagonal_id`),
   KEY `khorshidi_fabric_khorshidi_properties_null_fk_thickness` (`thickness_id`),
-  CONSTRAINT `khorshidi_fabric_khorshidi_properties_null_fk_digonal` FOREIGN KEY (`diagonal_id`) REFERENCES `khorshidi_properties` (`id`),
-  CONSTRAINT `khorshidi_fabric_khorshidi_properties_null_fk_thickness` FOREIGN KEY (`thickness_id`) REFERENCES `khorshidi_properties` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `khorshidi_fabric_khorshidi_properties_null_fk_digonal` FOREIGN KEY (`diagonal_id`) REFERENCES `properties` (`id`),
+  CONSTRAINT `khorshidi_fabric_khorshidi_properties_null_fk_thickness` FOREIGN KEY (`thickness_id`) REFERENCES `properties` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `khorshidi_warm`
+-- Dumping data for table `warm`
 --
 
-LOCK TABLES `khorshidi_warm` WRITE;
-/*!40000 ALTER TABLE `khorshidi_warm` DISABLE KEYS */;
-INSERT INTO `khorshidi_warm` VALUES (5,2,3,112),(9,1,3,100);
-/*!40000 ALTER TABLE `khorshidi_warm` ENABLE KEYS */;
+LOCK TABLES `warm` WRITE;
+/*!40000 ALTER TABLE `warm` DISABLE KEYS */;
+INSERT INTO `warm` VALUES (13,1,3,1000,'khorshidi'),(14,2,4,60000,'khorshidi');
+/*!40000 ALTER TABLE `warm` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -130,4 +137,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-14 15:41:15
+-- Dump completed on 2024-10-20 16:03:42
