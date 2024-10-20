@@ -92,7 +92,7 @@ func addFabric(c *gin.Context) {
 	//check for repetitive prices
 	var data khorshidiFabricPricDTO
 	for result.Next() {
-		err = result.Scan(&data.ID, &data.DiagonalId, &data.ThicknessId, &data.Price)
+		err = result.Scan(&data.ID, &data.ElementSlug, &data.Price, &data.ThicknessId, &data.DiagonalId)
 		if data.DiagonalId == priceDTO.Diagonal && data.ThicknessId == priceDTO.Thickness && data.ElementSlug == priceDTO.ElementSlug {
 
 			c.IndentedJSON(400, Response[string]{"خطای ولیدیشن", []string{"اطلاعات تکراری است"}})
@@ -103,6 +103,45 @@ func addFabric(c *gin.Context) {
 		panic(err)
 	}
 	_, err = db.Query("insert into fabric (diagonal_id, thickness_id, price, element_slug) values (?, ?, ?, ?);", priceDTO.Diagonal, priceDTO.Thickness, priceDTO.Price, priceDTO.ElementSlug)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت اضافه شد", Data: []string{""}})
+}
+func addWarm(c *gin.Context) {
+	var priceDTO struct {
+		Diagonal    int    `json:"diagonal"`
+		Thickness   int    `json:"thickness""`
+		Price       int    `json:"price"`
+		ElementSlug string `json:"element_slug"`
+	}
+	type warmPricDTO struct {
+		ID          int    `json:"id"`
+		DiagonalId  int    `json:"diagonal_id"`
+		ThicknessId int    `json:"thickness_id"`
+		Price       int    `json:"price"`
+		ElementSlug string `json:"element_slug"`
+	}
+	result, err := db.Query("select * from warm")
+	if err != nil {
+		panic(err)
+	}
+
+	err = c.BindJSON(&priceDTO)
+	//check for repetitive prices
+	var data warmPricDTO
+	for result.Next() {
+		err = result.Scan(&data.ID, &data.DiagonalId, &data.ThicknessId, &data.Price, &data.ElementSlug)
+		if data.DiagonalId == priceDTO.Diagonal && data.ThicknessId == priceDTO.Thickness && data.ElementSlug == priceDTO.ElementSlug {
+
+			c.IndentedJSON(400, Response[string]{"خطای ولیدیشن", []string{"اطلاعات تکراری است"}})
+			return
+		}
+	}
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Query("insert into warm (diagonal_id, thickness_id, price, element_slug) values (?, ?, ?, ?);", priceDTO.Diagonal, priceDTO.Thickness, priceDTO.Price, priceDTO.ElementSlug)
 	if err != nil {
 		panic(err)
 	}
@@ -150,6 +189,15 @@ func removeFabricPrice(c *gin.Context) {
 	id := c.Param("id")
 
 	_, err = db.Query("delete from fabric where id = ?  ", id)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
+}
+func removeWarmPrice(c *gin.Context) {
+	id := c.Param("id")
+
+	_, err = db.Query("delete from warm where id = ?  ", id)
 	if err != nil {
 		panic(err)
 	}
