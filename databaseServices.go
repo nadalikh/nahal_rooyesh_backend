@@ -30,7 +30,7 @@ type Config struct {
 }
 
 func init() {
-	db, err = sql.Open("mysql", "root:expecto-patronum1379@tcp(127.0.0.1:3306)/green_house")
+	db, err = sql.Open("mysql", "root:123456_nahal@tcp(127.0.0.1:3306)/green_house")
 	//db, err = sql.Open("mysql", "root:brauvZtcAqc6UJf@tcp(127.0.0.1:3306)/green_house")
 
 	// if there is an error opening the connection, handle it
