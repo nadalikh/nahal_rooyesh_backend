@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -68,6 +69,47 @@ func getKhorishidiProperties() interface{} {
 		pr = append(pr, prop)
 	}
 	return pr
+}
+func updateIronProperties(c *gin.Context) {
+	var ironProps struct {
+		ID    int `json:"id"`
+		Value int `json:"value"`
+	}
+	err := c.BindJSON(&ironProps)
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Query("UPDATE iron_properties SET value = ? WHERE id = ?", ironProps.Value, ironProps.ID)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "مشخصه آهن با موفقیت تغییر کرد", Data: []string{""}})
+
+}
+func getIronProperties(c *gin.Context) {
+	params := c.Request.URL.Query()
+	slug := params["slug"][0]
+	fmt.Println(slug)
+	var ironProp struct {
+		Slug  string `json:"slug"`
+		Value string `json:"value"`
+	}
+
+	if err != nil {
+		panic(err)
+	}
+	result, err := db.Query("select slug, value from iron_properties where slug=?", slug)
+	if err != nil {
+		panic(err)
+	}
+	for result.Next() {
+		err := result.Scan(&ironProp.Slug, &ironProp.Value)
+		if err != nil {
+			panic(err)
+		}
+	}
+	c.IndentedJSON(200, ironProp)
+
 }
 func addFabric(c *gin.Context) {
 	var priceDTO struct {
@@ -219,43 +261,64 @@ func getFabricPrice(cnf map[string]interface{}, slug string) float32 {
 			panic(err)
 		}
 		multipled *= price.value
-
 	}
+	multipled = 1
 	if err != nil {
 		panic(err)
 	}
 	switch slug {
 	case "khorshidi":
-		return price.price * KHORSHIDI_LENGTH * multipled * 3.14
+		//return price.price * KHORSHIDI_LENGTH
+		return price.price * float32(warmConfig["length"].(float64))
+
 	default:
 		return 0
 	}
 }
 func getKhorshidiWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	warmConfig := cnf["props"].(map[string]interface{})
-	result, err := db.Query("select price, slug, value from ( select * from warm  where element_slug=?)kf inner join  properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id =?  and diagonal_id=?", slug, warmConfig["thickness_id"], warmConfig["diagonal_id"])
+	//result, err := db.Query("select price, slug, value from ( select * from warm  where element_slug=?)kf inner join  properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id =?  and diagonal_id=?", slug, warmConfig["thickness_id"], warmConfig["diagonal_id"])
+	resultIronPrice, err := db.Query("select value from iron_properties  where id =1")
+	var ironPrice struct {
+		Value float32 `json:"value"`
+	}
+	for resultIronPrice.Next() {
+		err := resultIronPrice.Scan(&ironPrice.Value)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = resultIronPrice.Close()
+	if err != nil {
+		panic(err)
+	}
+	result, err := db.Query("select value from properties  where id =?  or id=?", warmConfig["thickness_id"], warmConfig["diagonal_id"])
+
 	var price struct {
-		price float32
-		slug  string
+		//price float32
+		//slug  string
 		value float32
 	}
 	var multipled float32
 	multipled = 1
 	for result.Next() {
-		err := result.Scan(&price.price, &price.slug, &price.value)
+		//err := result.Scan(&price.price, &price.slug, &price.value)
+		err := result.Scan(&price.value)
 		if err != nil {
 			panic(err)
 		}
-		multipled *= price.value
-
+		multipled *= price.value / 10 //convert to cm
 	}
+	fmt.Println(multipled)
 	if err != nil {
 		panic(err)
 	}
 
 	switch slug {
 	case "khorshidi":
-		return price.price * KHORSHIDI_LENGTH * multipled * 3.14
+		//return price.price * KHORSHIDI_LENGTH * multipled * 3.14 * IRON_DENSITY
+		//			Gram            CM				  CM				CM^3
+		return ironPrice.Value * float32(warmConfig["length"].(float64)) * multipled * 3.14 * IRON_DENSITY
 	default:
 		return 0
 	}

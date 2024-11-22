@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	IRON_DENSITY     = 7.874 //CM
-	KHORSHIDI_LENGTH = 250   //CM
+	IRON_DENSITY     = 7.874 //G/CM^3
+	KHORSHIDI_LENGTH = 2.5   //CM
 )
 
 type genericArray[T any] []T
@@ -50,10 +50,12 @@ func main() {
 	r.POST("/calculate", LandValidationMiddleware(), func(c *gin.Context) { c.IndentedJSON(200, completeCalculate(c)) })
 	r.GET("/khorshidi-properties", func(c *gin.Context) { c.IndentedJSON(200, getKhorishidiProperties()) })
 	r.POST("/fabric", addFabric)
-	r.POST("/warm", addWarm)
+	r.PUT("/iron-properties", updateIronProperties)
+	r.GET("/iron-properties", getIronProperties)
+	//r.POST("/warm", addWarm)
 	r.DELETE("/fabric/:id", removeFabricPrice)
-	r.DELETE("/warm/:id", removeWarmPrice)
-	r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
+	//r.DELETE("/warm/:id", removeWarmPrice)
+	//r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
 	r.GET("/getFabric", func(c *gin.Context) { c.IndentedJSON(200, getKhorshidiFabric(c)) })
 	r.POST("/price", func(c *gin.Context) { c.IndentedJSON(200, getPriceFromRequest(c)) })
 
