@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"math"
 )
 
 var (
@@ -292,24 +293,33 @@ func getKhorshidiWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	if err != nil {
 		panic(err)
 	}
-	result, err := db.Query("select value from properties  where id =?  or id=?", warmConfig["thickness_id"], warmConfig["diagonal_id"])
+	result, err := db.Query("select value, slug from properties  where id =?  or id=?", warmConfig["thickness_id"], warmConfig["diagonal_id"])
 
 	var price struct {
 		//price float32
-		//slug  string
-		value float32
+		slug  string
+		value float64
 	}
-	var multipled float32
-	multipled = 1
+	var space float64
+	space = 1
+
+	D := float64(1.0)
+	T := float64(1.0)
 	for result.Next() {
 		//err := result.Scan(&price.price, &price.slug, &price.value)
-		err := result.Scan(&price.value)
+		err := result.Scan(&price.value, &price.slug)
 		if err != nil {
 			panic(err)
 		}
-		multipled *= price.value / 10 //convert to cm
+		//multipled *= price.value / 10 //convert to cm
+		if price.slug == "diagonal" {
+			D = price.value / 10
+		} else if price.slug == "thickness" {
+			T = price.value / 10
+		}
 	}
-	fmt.Println(multipled)
+	space = (math.Pi * math.Pow(D, 2) / 4) - (math.Pi * math.Pow(D-(2*T), 2) / 4)
+	fmt.Println(space)
 	if err != nil {
 		panic(err)
 	}
@@ -318,7 +328,7 @@ func getKhorshidiWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	case "khorshidi":
 		//return price.price * KHORSHIDI_LENGTH * multipled * 3.14 * IRON_DENSITY
 		//			Gram            CM				  CM				CM^3
-		return ironPrice.Value * float32(warmConfig["length"].(float64)) * multipled * 3.14 * IRON_DENSITY
+		return float32(ironPrice.Value) * float32(warmConfig["length"].(float64)) * float32(space) * IRON_DENSITY
 	default:
 		return 0
 	}
