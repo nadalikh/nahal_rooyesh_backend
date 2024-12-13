@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.39, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.40, for Linux (x86_64)
 --
 -- Host: localhost    Database: green_house
 -- ------------------------------------------------------
--- Server version	8.0.39-0ubuntu0.20.04.1
+-- Server version	8.0.40-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -37,7 +37,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'khorshidi','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}');
+INSERT INTO `config` VALUES (1,'pipe','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -59,7 +59,7 @@ CREATE TABLE `fabric` (
   KEY `fabric_properties_id_fk_2` (`thickness_id`),
   CONSTRAINT `fabric_properties_id_fk` FOREIGN KEY (`diagonal_id`) REFERENCES `properties` (`id`),
   CONSTRAINT `fabric_properties_id_fk_2` FOREIGN KEY (`thickness_id`) REFERENCES `properties` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,7 @@ CREATE TABLE `fabric` (
 
 LOCK TABLES `fabric` WRITE;
 /*!40000 ALTER TABLE `fabric` DISABLE KEYS */;
-INSERT INTO `fabric` VALUES (1,'khorshidi',2000,3,1),(6,'khorshidi',1000,4,1);
+INSERT INTO `fabric` VALUES (6,'pipe',1000,4,1),(7,'pipe',1000,3,2),(8,'pipe',56100,3,1);
 /*!40000 ALTER TABLE `fabric` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -93,7 +93,7 @@ CREATE TABLE `iron_properties` (
 
 LOCK TABLES `iron_properties` WRITE;
 /*!40000 ALTER TABLE `iron_properties` DISABLE KEYS */;
-INSERT INTO `iron_properties` VALUES ('warm_price',1,1000);
+INSERT INTO `iron_properties` VALUES ('warm_price',1,65000);
 /*!40000 ALTER TABLE `iron_properties` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -162,4 +162,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-11-22 22:10:54
+-- Dump completed on 2024-12-13 19:11:13
