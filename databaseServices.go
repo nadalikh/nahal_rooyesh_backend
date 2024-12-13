@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"math"
 )
@@ -58,7 +59,7 @@ func loadAllConfigs() *map[string]string {
 	return &configs
 
 }
-func getKhorishidiProperties() interface{} {
+func getPipeProperties() interface{} {
 	result, err := db.Query("SELECT * FROM properties")
 	if err != nil {
 		panic(err)
@@ -207,7 +208,7 @@ func getWarm(c *gin.Context) interface{} {
 	}
 	return list
 }
-func getKhorshidiFabric(c *gin.Context) interface{} {
+func getFabric(c *gin.Context) interface{} {
 	type khorshidiFabricPricDTO struct {
 		ID          int `json:"id"`
 		DiagonalId  int `json:"diagonal_id"`
@@ -237,16 +238,8 @@ func removeFabricPrice(c *gin.Context) {
 	}
 	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
 }
-func removeWarmPrice(c *gin.Context) {
-	id := c.Param("id")
 
-	_, err = db.Query("delete from warm where id = ?  ", id)
-	if err != nil {
-		panic(err)
-	}
-	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
-}
-func getFabricPrice(cnf map[string]interface{}, slug string) float32 {
+func getFabricPipePrice(cnf map[string]interface{}, slug string) float32 {
 	warmConfig := cnf["props"].(map[string]interface{})
 	result, err := db.Query("select price, slug, value from ( select * from fabric  where element_slug=?)kf inner join  properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id =?  and diagonal_id=?", slug, warmConfig["thickness_id"], warmConfig["diagonal_id"])
 	var price struct {
@@ -268,7 +261,7 @@ func getFabricPrice(cnf map[string]interface{}, slug string) float32 {
 		panic(err)
 	}
 	switch slug {
-	case "khorshidi":
+	case "pipe":
 		//return price.price * KHORSHIDI_LENGTH
 		return price.price * float32(warmConfig["length"].(float64))
 
@@ -276,7 +269,7 @@ func getFabricPrice(cnf map[string]interface{}, slug string) float32 {
 		return 0
 	}
 }
-func getKhorshidiWarmPrice(cnf map[string]interface{}, slug string) float32 {
+func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	warmConfig := cnf["props"].(map[string]interface{})
 	//result, err := db.Query("select price, slug, value from ( select * from warm  where element_slug=?)kf inner join  properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id =?  and diagonal_id=?", slug, warmConfig["thickness_id"], warmConfig["diagonal_id"])
 	resultIronPrice, err := db.Query("select value from iron_properties  where id =1")
@@ -325,7 +318,7 @@ func getKhorshidiWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	}
 
 	switch slug {
-	case "khorshidi":
+	case "pipe":
 		//return price.price * KHORSHIDI_LENGTH * multipled * 3.14 * IRON_DENSITY
 		//			Gram            CM				  CM				CM^3
 		return float32(ironPrice.Value) * float32(warmConfig["length"].(float64)) * float32(space) * IRON_DENSITY
