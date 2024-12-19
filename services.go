@@ -211,7 +211,6 @@ func getPrice(config interface{}, slug string, quantity float32) float32 {
 			}
 			break
 		default:
-
 			temp, err := json.Marshal(config)
 			if err != nil {
 				panic(err)
@@ -232,7 +231,6 @@ func getPrice(config interface{}, slug string, quantity float32) float32 {
 				return quantity * getPipeWarmPrice(cnf, slug)
 			}
 		}
-
 	}
 	return 0
 }

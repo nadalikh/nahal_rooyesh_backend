@@ -197,6 +197,7 @@ func getWarm(c *gin.Context) interface{} {
 	elementSlug := params["element_slug"][0]
 
 	result, err := db.Query("select id, diagonal_id, thickness_id, price from warm where element_slug=?", elementSlug)
+
 	if err != nil {
 		panic(err)
 	}
@@ -263,7 +264,7 @@ func getFabricPipePrice(cnf map[string]interface{}, slug string) float32 {
 	switch slug {
 	case "pipe":
 		//return price.price * KHORSHIDI_LENGTH
-		return price.price * float32(warmConfig["length"].(float64))
+		return price.price * float32(warmConfig["length"].(float64)) / 100
 
 	default:
 		return 0
@@ -304,15 +305,16 @@ func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 		if err != nil {
 			panic(err)
 		}
-		//multipled *= price.value / 10 //convert to cm
 		if price.slug == "diagonal" {
-			D = price.value / 10
+			D = price.value / 10 //convert to cm
 		} else if price.slug == "thickness" {
-			T = price.value / 10
+			T = price.value / 10 //convert to cm
 		}
 	}
-	space = (math.Pi * math.Pow(D, 2) / 4) - (math.Pi * math.Pow(D-(2*T), 2) / 4)
-	fmt.Println(space)
+
+	//space = (math.Pi * math.Pow(D, 2) / 4) - (math.Pi * math.Pow(D-(2*T), 2) / 4)
+	space = D * math.Pi * T
+
 	if err != nil {
 		panic(err)
 	}
@@ -321,7 +323,7 @@ func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	case "pipe":
 		//return price.price * KHORSHIDI_LENGTH * multipled * 3.14 * IRON_DENSITY
 		//			Gram            CM				  CM				CM^3
-		return float32(ironPrice.Value) * float32(warmConfig["length"].(float64)) * float32(space) * IRON_DENSITY
+		return float32(ironPrice.Value) / 1000 * float32(warmConfig["length"].(float64)) * float32(space) * IRON_DENSITY
 	default:
 		return 0
 	}
