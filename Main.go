@@ -57,6 +57,9 @@ func main() {
 	//r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
 	r.GET("/getFabric", func(c *gin.Context) { c.IndentedJSON(200, getFabric(c)) })
 	r.POST("/price", func(c *gin.Context) { c.IndentedJSON(200, getPriceFromRequest(c)) })
+	r.GET("/getSpecificBoltsPrice", func(c *gin.Context) { c.IndentedJSON(200, getSpecificBoltsPrice(c)) })
+
+	r.POST("/createBoltsPrice", createBoltsPriceService)
 
 	r.Run(":8030") // listen and serve on 0.0.0.0:8080
 }

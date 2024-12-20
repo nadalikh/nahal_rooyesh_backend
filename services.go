@@ -199,7 +199,7 @@ func getNumber(resultOfCalculates map[string]float32, key string) float32 {
 		return 0
 	}
 }
-func getPrice(config interface{}, slug string, quantity float32) float32 {
+func getPrice(config interface{}, typeSlug string, quantity float32, elementSlug string) float32 {
 
 	if config != "" {
 		var cnf map[string]interface{}
@@ -221,19 +221,51 @@ func getPrice(config interface{}, slug string, quantity float32) float32 {
 			}
 		}
 
-		switch slug {
+		switch typeSlug {
 		case "pipe":
 			switch cnf["galvanize"] {
 			case "fabric":
-				fmt.Println(slug)
-				return quantity * getFabricPipePrice(cnf, slug)
+				fmt.Println(typeSlug)
+				return quantity * getFabricPipePrice(cnf, typeSlug)
 			case "warm":
-				return quantity * getPipeWarmPrice(cnf, slug)
+				return quantity * getPipeWarmPrice(cnf, typeSlug)
 			}
+		case "bolts":
+			return quantity * getBoltsPrice(elementSlug)
 		}
 	}
 	return 0
 }
+
+func getSpecificBoltsPrice(c *gin.Context) interface{} {
+	var elementSlug struct {
+		ElementSlug string `json:"element_slug"`
+	}
+	err := c.BindJSON(&elementSlug)
+	if err != nil {
+		panic(err)
+	}
+	return struct {
+		Price float32 `json:"price"`
+	}{Price: getBoltsPrice(elementSlug.ElementSlug)}
+}
+
+func createBoltsPriceService(c *gin.Context) {
+	var boltPrice struct {
+		ElementSlug string `json:"element_slug"`
+		Price       int    `json:"price"`
+	}
+	err := c.BindJSON(&boltPrice)
+	if err != nil {
+		panic(err)
+	}
+	err = createBoltsPrice(boltPrice.ElementSlug, boltPrice.Price)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "قیمت پیج و مهره اضافه شد", Data: []string{""}})
+}
+
 func getPriceFromRequest(c *gin.Context) interface{} {
 	var configDTO struct {
 		ElementSlug string      `json:"element_slug"`
@@ -244,75 +276,77 @@ func getPriceFromRequest(c *gin.Context) interface{} {
 	if err != nil {
 		panic(err)
 	}
-	price := getPrice(configDTO.Config, configDTO.ElementSlug, configDTO.Quantity)
+	price := getPrice(configDTO.Config, configDTO.ElementSlug, configDTO.Quantity, configDTO.ElementSlug)
 	return struct {
 		Price float32 `json:"price"`
 	}{Price: price}
 }
+
 func elementFactory(resultOfCalculates map[string]float32, configs *map[string]string) []Category {
 	khorshidiNumber := getNumber(resultOfCalculates, "khorshidi")
 	pipeConfig := (*configs)["pipe"]
+	boltsConfig := (*configs)["bolts"]
 	var x = []Category{
 		{"لوله ها و المان ها", []Element{
-			{"ستون ها", getNumber(resultOfCalculates, "shaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaft")), pipeConfig, "shaft"},
-			{"کمان ها", getNumber(resultOfCalculates, "bow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bow")), pipeConfig, "bow"},
-			{"وتر ها", getNumber(resultOfCalculates, "chord"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "chord")), pipeConfig, "chord"},
-			{"المان 267cm", getNumber(resultOfCalculates, "267cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "267cmElements")), pipeConfig, "267cmElements"},
-			{"المان 176cm", getNumber(resultOfCalculates, "176cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "176cmElements")), pipeConfig, "176cmElements"},
-			{"المان 150cm", getNumber(resultOfCalculates, "150cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "150cmElements")), pipeConfig, "150cmElements"},
-			{"کانکتور مرکزی", getNumber(resultOfCalculates, "centralConnector"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "centralConnector")), pipeConfig, "centralConnector"},
+			{"ستون ها", getNumber(resultOfCalculates, "shaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaft"), "shaft"), pipeConfig, "shaft"},
+			{"کمان ها", getNumber(resultOfCalculates, "bow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bow"), "bow"), pipeConfig, "bow"},
+			{"وتر ها", getNumber(resultOfCalculates, "chord"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "chord"), "chord"), pipeConfig, "chord"},
+			{"المان 267cm", getNumber(resultOfCalculates, "267cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "267cmElements"), "267cmElement"), pipeConfig, "267cmElements"},
+			{"المان 176cm", getNumber(resultOfCalculates, "176cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "176cmElements"), "176cmElement"), pipeConfig, "176cmElements"},
+			{"المان 150cm", getNumber(resultOfCalculates, "150cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "150cmElements"), "150cmElement"), pipeConfig, "150cmElements"},
+			{"کانکتور مرکزی", getNumber(resultOfCalculates, "centralConnector"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "centralConnector"), "centralConnecto"), pipeConfig, "centralConnector"},
 			//{" المان شبکه ای", getNumber(resultOfCalculates,"shaft" ), "عدد"},
-			{"خورشیدی", khorshidiNumber, "عدد", getPrice(pipeConfig, "pipe", khorshidiNumber), pipeConfig, "khorshidi"},
-			{"بادبند های X", getNumber(resultOfCalculates, "windBreaker"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "windBreaker")), pipeConfig, "windBreaker"},
-			{"سفت کن قبل پنجره", getNumber(resultOfCalculates, "hardenerBeforeWindow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "hardenerBeforeWindow")), pipeConfig, "hardenerBeforeWindow"},
-			{"ستون های فرعی", getNumber(resultOfCalculates, "secondaryShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "secondaryShaft")), pipeConfig, "secondaryShaft"},
-			{"سر ستون کناری", getNumber(resultOfCalculates, "sideHeadShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "sideHeadShaft")), pipeConfig, "sideHeadShaft"},
-			{"سرستون میانی", getNumber(resultOfCalculates, "centralHeadShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "centralHeadShaft")), pipeConfig, "centralHeadShaft"},
-			{"پروفیل لاگینگ", getNumber(resultOfCalculates, "locking"), "متر", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "locking")), pipeConfig, "locking"},
-			{"فنر", getNumber(resultOfCalculates, "spring"), "متر", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "spring")), pipeConfig, "spring"},
-			{"ناودان کناری", getNumber(resultOfCalculates, "sideGutter"), "تعداد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "sideGutter")), pipeConfig, "sideGutter"},
-			{"ناودان میانی", getNumber(resultOfCalculates, "centralGutter"), "تعداد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "centralGutter")), pipeConfig, "centralGutter"},
+			{"خورشیدی", khorshidiNumber, "عدد", getPrice(pipeConfig, "pipe", khorshidiNumber, "khorshidi"), pipeConfig, "khorshidi"},
+			{"بادبند های X", getNumber(resultOfCalculates, "windBreaker"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "windBreaker"), "windBreake"), pipeConfig, "windBreaker"},
+			{"سفت کن قبل پنجره", getNumber(resultOfCalculates, "hardenerBeforeWindow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "hardenerBeforeWindow"), "hardenerBeforeWindo"), pipeConfig, "hardenerBeforeWindow"},
+			{"ستون های فرعی", getNumber(resultOfCalculates, "secondaryShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "secondaryShaft"), "secondaryShaf"), pipeConfig, "secondaryShaft"},
+			{"سر ستون کناری", getNumber(resultOfCalculates, "sideHeadShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "sideHeadShaft"), "sideHeadShaf"), pipeConfig, "sideHeadShaft"},
+			{"سرستون میانی", getNumber(resultOfCalculates, "centralHeadShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "centralHeadShaft"), "centralHeadShaf"), pipeConfig, "centralHeadShaft"},
+			{"پروفیل لاگینگ", getNumber(resultOfCalculates, "locking"), "متر", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "locking"), "lockin"), pipeConfig, "locking"},
+			{"فنر", getNumber(resultOfCalculates, "spring"), "متر", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "spring"), "sprin"), pipeConfig, "spring"},
+			{"ناودان کناری", getNumber(resultOfCalculates, "sideGutter"), "تعداد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "sideGutter"), "sideGutte"), pipeConfig, "sideGutter"},
+			{"ناودان میانی", getNumber(resultOfCalculates, "centralGutter"), "تعداد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "centralGutter"), "centralGutte"), pipeConfig, "centralGutter"},
 		}},
 		{"هوک ها", []Element{
-			{"کمان دوم به ستون فرعی", getNumber(resultOfCalculates, "secondToShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "secondToShaft")), pipeConfig, "secondToShaft"},
-			{"هوک کمان مورب", getNumber(resultOfCalculates, "diagonal"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "diagonal")), pipeConfig, "diagonal"},
-			{"هوک کمان اول به دوم", getNumber(resultOfCalculates, "firstBowToSecond"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "firstBowToSecond")), pipeConfig, "firstBowToSecond"},
+			{"کمان دوم به ستون فرعی", getNumber(resultOfCalculates, "secondToShaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "secondToShaft"), "secondToShaf"), pipeConfig, "secondToShaft"},
+			{"هوک کمان مورب", getNumber(resultOfCalculates, "diagonal"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "diagonal"), "diagona"), pipeConfig, "diagonal"},
+			{"هوک کمان اول به دوم", getNumber(resultOfCalculates, "firstBowToSecond"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "firstBowToSecond"), "firstBowToSecon"), pipeConfig, "firstBowToSecond"},
 		}},
 		{"بست ها", []Element{
-			{"بست گاتیک", getNumber(resultOfCalculates, "bindingGathic"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bindingGathic")), pipeConfig, "bindingGathic"},
-			{"بست 80x 80 یک طرفه 4cm", getNumber(resultOfCalculates, "oneWay80X804cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "oneWay80X804cm")), pipeConfig, "oneWay80X804cm"},
-			{"بست 80x 80 یک طرفه 3cm+ بوشن", getNumber(resultOfCalculates, "OneWay80X803cmBushan"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "oneWay80X804cm")), pipeConfig, "OneWay80X803cmBushan"},
-			{"بست 80x 80 دوطرفه", getNumber(resultOfCalculates, "towWay80X80"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "towWay80X80")), pipeConfig, "towWay80X80"},
-			{"بست لامپی 4", getNumber(resultOfCalculates, "lamp4"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "lamp4")), pipeConfig, "lamp4"},
-			{"بست لامپی 6", getNumber(resultOfCalculates, "lamp6"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "lamp6")), pipeConfig, "lamp6"},
-			{"بست سفت کن و بوشن", getNumber(resultOfCalculates, "hardenerBushen"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "hardenerBushen")), pipeConfig, "hardenerBushen"},
-			{"بست سفت کن کنار", getNumber(resultOfCalculates, "sideHardener"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "sideHardener")), pipeConfig, "sideHardener"},
-			{"بست سفت کن سر و ته", getNumber(resultOfCalculates, "headAndTailHardener"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "headAndTailHardener")), pipeConfig, "headAndTailHardener"},
-			{"پیچ نعل اسبی", getNumber(resultOfCalculates, "horseShoe"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "horseShoe")), pipeConfig, "horseShoe"},
-			{"پیچ شیروانی", getNumber(resultOfCalculates, "gableScrew"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "gableScrew")), pipeConfig, "gableScrew"},
-			{"بست رابط درونی وبیرونی H", getNumber(resultOfCalculates, "H_InOutConnector"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "H_InOutConnector")), pipeConfig, "H_InOutConnector"},
+			{"بست گاتیک", getNumber(resultOfCalculates, "bindingGathic"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bindingGathic"), "bindingGathi"), pipeConfig, "bindingGathic"},
+			{"بست 80x 80 یک طرفه 4cm", getNumber(resultOfCalculates, "oneWay80X804cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "oneWay80X804cm"), "oneWay80X804c"), pipeConfig, "oneWay80X804cm"},
+			{"بست 80x 80 یک طرفه 3cm+ بوشن", getNumber(resultOfCalculates, "OneWay80X803cmBushan"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "oneWay80X804cm"), "oneWay80X804c"), pipeConfig, "OneWay80X803cmBushan"},
+			{"بست 80x 80 دوطرفه", getNumber(resultOfCalculates, "towWay80X80"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "towWay80X80"), "towWay80X8"), pipeConfig, "towWay80X80"},
+			{"بست لامپی 4", getNumber(resultOfCalculates, "lamp4"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "lamp4"), "lamp"), pipeConfig, "lamp4"},
+			{"بست لامپی 6", getNumber(resultOfCalculates, "lamp6"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "lamp6"), "lamp"), pipeConfig, "lamp6"},
+			{"بست سفت کن و بوشن", getNumber(resultOfCalculates, "hardenerBushen"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "hardenerBushen"), "hardenerBushe"), pipeConfig, "hardenerBushen"},
+			{"بست سفت کن کنار", getNumber(resultOfCalculates, "sideHardener"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "sideHardener"), "sideHardene"), pipeConfig, "sideHardener"},
+			{"بست سفت کن سر و ته", getNumber(resultOfCalculates, "headAndTailHardener"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "headAndTailHardener"), "headAndTailHardene"), pipeConfig, "headAndTailHardener"},
+			{"پیچ نعل اسبی", getNumber(resultOfCalculates, "horseShoe"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "horseShoe"), "horseSho"), pipeConfig, "horseShoe"},
+			{"پیچ شیروانی", getNumber(resultOfCalculates, "gableScrew"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "gableScrew"), "gableScre"), pipeConfig, "gableScrew"},
+			{"بست رابط درونی وبیرونی H", getNumber(resultOfCalculates, "H_InOutConnector"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "H_InOutConnector"), "H_InOutConnecto"), pipeConfig, "H_InOutConnector"},
 		}},
 		{"پنجره", []Element{
-			{"رک", getNumber(resultOfCalculates, "rack"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "rack")), pipeConfig, "rack"},
-			{"پینیون", getNumber(resultOfCalculates, "pinion"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "pinion")), pipeConfig, "pinion"},
-			{"سفت کن زیرپنجره", getNumber(resultOfCalculates, "hardenerUnderTheWindow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "hardenerUnderTheWindow")), "", "hardenerUnderTheWindow"},
-			{"لوله شفت", getNumber(resultOfCalculates, "shaftPipe"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaftPipe")), pipeConfig, "shaftPipe"},
-			{"رابط لوله شفت", getNumber(resultOfCalculates, "shaftPipeConnector"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaftPipeConnector")), pipeConfig, "shaftPipeConnector"},
-			{"رابط گلپیچ", getNumber(resultOfCalculates, "golpich"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "golpich")), pipeConfig, "golpich"},
-			{" تعداد پروفیل H سرپنجره", getNumber(resultOfCalculates, "headOfWindowH"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "headOfWindowH")), pipeConfig, "headOfWindowH"},
-			{"دستک پنجره", getNumber(resultOfCalculates, "windowPicket"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "windowPicket")), pipeConfig, "windowPicket"},
-			{"بست LOF", getNumber(resultOfCalculates, "LOF"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "LOF")), pipeConfig, "LOF"},
-			{"بست اکسل", getNumber(resultOfCalculates, "excel"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "excel")), pipeConfig, "excel"},
-			{"بست پارویی", getNumber(resultOfCalculates, "rowing"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "rowing")), pipeConfig, "rowing"},
+			{"رک", getNumber(resultOfCalculates, "rack"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "rack"), "rac"), pipeConfig, "rack"},
+			{"پینیون", getNumber(resultOfCalculates, "pinion"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "pinion"), "pinio"), pipeConfig, "pinion"},
+			{"سفت کن زیرپنجره", getNumber(resultOfCalculates, "hardenerUnderTheWindow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "hardenerUnderTheWindow"), "hardenerUnderTheWindo"), "", "hardenerUnderTheWindow"},
+			{"لوله شفت", getNumber(resultOfCalculates, "shaftPipe"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaftPipe"), "shaftPip"), pipeConfig, "shaftPipe"},
+			{"رابط لوله شفت", getNumber(resultOfCalculates, "shaftPipeConnector"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaftPipeConnector"), "shaftPipeConnecto"), pipeConfig, "shaftPipeConnector"},
+			{"رابط گلپیچ", getNumber(resultOfCalculates, "golpich"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "golpich"), "golpic"), pipeConfig, "golpich"},
+			{" تعداد پروفیل H سرپنجره", getNumber(resultOfCalculates, "headOfWindowH"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "headOfWindowH"), "headOfWindow"), pipeConfig, "headOfWindowH"},
+			{"دستک پنجره", getNumber(resultOfCalculates, "windowPicket"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "windowPicket"), "windowPicke"), pipeConfig, "windowPicket"},
+			{"بست LOF", getNumber(resultOfCalculates, "LOF"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "LOF"), "LO"), pipeConfig, "LOF"},
+			{"بست اکسل", getNumber(resultOfCalculates, "excel"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "excel"), "exce"), pipeConfig, "excel"},
+			{"بست پارویی", getNumber(resultOfCalculates, "rowing"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "rowing"), "rowin"), pipeConfig, "rowing"},
 		}},
 		{"پیچ و مهره", []Element{
-			{"۲ سانتی", getNumber(resultOfCalculates, "bolt_2cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_2cm")), pipeConfig, "bolt_2cm"},
-			{"۳ سانتی", getNumber(resultOfCalculates, "bolt_3cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_3cm")), pipeConfig, "bolt_3cm"},
-			{"۴ سانتی", getNumber(resultOfCalculates, "bolt_4cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_4cm")), pipeConfig, "bolt_4cm"},
-			{"۵ سانتی", getNumber(resultOfCalculates, "bolt_5cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_5cm")), pipeConfig, "bolt_5cm"},
-			{"۶ سانتی", getNumber(resultOfCalculates, "bolt_6cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_6cm")), pipeConfig, "bolt_6cm"},
-			{"۱۰ سانتی", getNumber(resultOfCalculates, "bolt_10cm"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_10cm")), pipeConfig, "bolt_10cm"},
-			{"نیم رزوه با مهره کاسه نمدی", getNumber(resultOfCalculates, "bolt_halfThread"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bolt_halfThread")), pipeConfig, "bolt_halfThread"},
+			{"۲ سانتی", getNumber(resultOfCalculates, "bolt_2cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_2cm"), "bolt_2c"), pipeConfig, "bolt_2cm"},
+			{"۳ سانتی", getNumber(resultOfCalculates, "bolt_3cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_3cm"), "bolt_3c"), pipeConfig, "bolt_3cm"},
+			{"۴ سانتی", getNumber(resultOfCalculates, "bolt_4cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_4cm"), "bolt_4c"), pipeConfig, "bolt_4cm"},
+			{"۵ سانتی", getNumber(resultOfCalculates, "bolt_5cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_5cm"), "bolt_5c"), pipeConfig, "bolt_5cm"},
+			{"۶ سانتی", getNumber(resultOfCalculates, "bolt_6cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_6cm"), "bolt_6c"), pipeConfig, "bolt_6cm"},
+			{"۱۰ سانتی", getNumber(resultOfCalculates, "bolt_10cm"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_10cm"), "bolt_10c"), pipeConfig, "bolt_10cm"},
+			{"نیم رزوه با مهره کاسه نمدی", getNumber(resultOfCalculates, "bolt_halfThread"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "bolt_halfThread"), "bolt_halfThrea"), pipeConfig, "bolt_halfThread"},
 		}},
 	}
 	return x

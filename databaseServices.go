@@ -329,3 +329,27 @@ func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	}
 	//result, err := db.Query("select price from khorshidi_fabric where digonal_id = ? and thickness_id = ?", DTOConfig.fabric.)
 }
+
+func getBoltsPrice(elementSlug string) float32 {
+	result, err := db.Query("select price from bolts_price where element_slug =? ", elementSlug)
+	if err != nil {
+		panic(err)
+	}
+	var price struct {
+		price float32
+	}
+	for result.Next() {
+		//err := result.Scan(&price.price, &price.slug, &price.value)
+		err := result.Scan(&price.price)
+		if err != nil {
+			panic(err)
+		}
+		return price.price
+	}
+	return 0
+}
+
+func createBoltsPrice(elementSlug string, price int) error {
+	_, err = db.Query("insert into bolts_price (element_slug, price) values (?, ? );", elementSlug, price)
+	return err
+}
