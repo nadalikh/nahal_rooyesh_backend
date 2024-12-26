@@ -16,27 +16,28 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `bolts_prcie`
+-- Table structure for table `bolts_price`
 --
 
-DROP TABLE IF EXISTS `bolts_prcie`;
+DROP TABLE IF EXISTS `bolts_price`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `bolts_prcie` (
+CREATE TABLE `bolts_price` (
   `id` int NOT NULL AUTO_INCREMENT,
   `element_slug` varchar(255) DEFAULT NULL,
   `price` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `bolts_prcie`
+-- Dumping data for table `bolts_price`
 --
 
-LOCK TABLES `bolts_prcie` WRITE;
-/*!40000 ALTER TABLE `bolts_prcie` DISABLE KEYS */;
-/*!40000 ALTER TABLE `bolts_prcie` ENABLE KEYS */;
+LOCK TABLES `bolts_price` WRITE;
+/*!40000 ALTER TABLE `bolts_price` DISABLE KEYS */;
+INSERT INTO `bolts_price` VALUES (2,'bindingGathic',1000),(3,'OneWay80X803cmBushan',2000);
+/*!40000 ALTER TABLE `bolts_price` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -186,4 +187,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-20 19:53:54
+-- Dump completed on 2024-12-26 14:23:03

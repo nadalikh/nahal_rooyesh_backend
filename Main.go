@@ -18,6 +18,7 @@ type Element struct {
 	Price           float32 `json:"price"`
 	Config          string  `json:"config"`
 	Slug            string  `json:"slug"`
+	TypeSlug        string  `json:"type_slug"`
 }
 
 type Category struct {
@@ -57,7 +58,7 @@ func main() {
 	//r.GET("/getWarm", func(c *gin.Context) { c.IndentedJSON(200, getWarm(c)) })
 	r.GET("/getFabric", func(c *gin.Context) { c.IndentedJSON(200, getFabric(c)) })
 	r.POST("/price", func(c *gin.Context) { c.IndentedJSON(200, getPriceFromRequest(c)) })
-	r.GET("/getSpecificBoltsPrice", func(c *gin.Context) { c.IndentedJSON(200, getSpecificBoltsPrice(c)) })
+	r.GET("/getSpecificBoltsPrice/:element_slug", func(c *gin.Context) { c.IndentedJSON(200, getSpecificBoltsPrice(c)) })
 
 	r.POST("/createBoltsPrice", createBoltsPriceService)
 

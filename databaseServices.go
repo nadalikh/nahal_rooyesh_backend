@@ -91,7 +91,7 @@ func updateIronProperties(c *gin.Context) {
 func getIronProperties(c *gin.Context) {
 	params := c.Request.URL.Query()
 	slug := params["slug"][0]
-	fmt.Println(slug)
+
 	var ironProp struct {
 		Slug  string `json:"slug"`
 		Value string `json:"value"`
@@ -331,20 +331,25 @@ func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 }
 
 func getBoltsPrice(elementSlug string) float32 {
-	result, err := db.Query("select price from bolts_price where element_slug =? ", elementSlug)
+	fmt.Println(elementSlug, len(elementSlug))
+
+	result, err := db.Query("select price from bolts_price where element_slug = ? ", elementSlug)
 	if err != nil {
 		panic(err)
 	}
 	var price struct {
-		price float32
+		price int
 	}
 	for result.Next() {
+		fmt.Println("test")
 		//err := result.Scan(&price.price, &price.slug, &price.value)
 		err := result.Scan(&price.price)
 		if err != nil {
 			panic(err)
 		}
-		return price.price
+		fmt.Println(elementSlug, price.price)
+
+		return float32(price.price)
 	}
 	return 0
 }
