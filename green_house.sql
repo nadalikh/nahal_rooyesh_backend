@@ -53,7 +53,7 @@ CREATE TABLE `config` (
   `congif_json` longtext,
   PRIMARY KEY (`id`),
   UNIQUE KEY `config_element_slug_uindex` (`element_slug`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -62,7 +62,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'pipe','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}'),(2,'bolts','{}');
+INSERT INTO `config` VALUES (1,'pipe','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}'),(2,'bolts','{}'),(3,'profile','{\"galvanize\":\"fabric\", \"props\" : {\"width_id\":6, \"length_id\":5 ,\"thickness_id\":3, \"length\":100}}'),(4,'profile_pipe','{\"base\":\"fabric\"}');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -84,7 +84,7 @@ CREATE TABLE `fabric` (
   KEY `fabric_properties_id_fk_2` (`thickness_id`),
   CONSTRAINT `fabric_properties_id_fk` FOREIGN KEY (`diagonal_id`) REFERENCES `properties` (`id`),
   CONSTRAINT `fabric_properties_id_fk_2` FOREIGN KEY (`thickness_id`) REFERENCES `properties` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -93,7 +93,7 @@ CREATE TABLE `fabric` (
 
 LOCK TABLES `fabric` WRITE;
 /*!40000 ALTER TABLE `fabric` DISABLE KEYS */;
-INSERT INTO `fabric` VALUES (6,'pipe',1000,4,1),(7,'pipe',1000,3,2),(8,'pipe',56100,3,1);
+INSERT INTO `fabric` VALUES (6,'pipe',1000,4,1),(7,'pipe',1000,3,2),(8,'pipe',56100,3,1),(9,'pipe',1111,4,2);
 /*!40000 ALTER TABLE `fabric` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -123,6 +123,39 @@ INSERT INTO `iron_properties` VALUES ('warm_price',1,65000);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `profile_fabric`
+--
+
+DROP TABLE IF EXISTS `profile_fabric`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `profile_fabric` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `price` int DEFAULT NULL,
+  `thickness_id` int DEFAULT NULL,
+  `width_id` int DEFAULT NULL,
+  `length_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `profile_fabric_properties_length_fk` (`length_id`),
+  KEY `profile_fabric_properties_thickness_fk` (`thickness_id`),
+  KEY `profile_fabric_properties_width_fk` (`width_id`),
+  CONSTRAINT `profile_fabric_properties_length_fk` FOREIGN KEY (`length_id`) REFERENCES `properties` (`id`),
+  CONSTRAINT `profile_fabric_properties_thickness_fk` FOREIGN KEY (`thickness_id`) REFERENCES `properties` (`id`),
+  CONSTRAINT `profile_fabric_properties_width_fk` FOREIGN KEY (`width_id`) REFERENCES `properties` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `profile_fabric`
+--
+
+LOCK TABLES `profile_fabric` WRITE;
+/*!40000 ALTER TABLE `profile_fabric` DISABLE KEYS */;
+INSERT INTO `profile_fabric` VALUES (3,1000,3,6,5),(4,2000,4,6,5);
+/*!40000 ALTER TABLE `profile_fabric` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `properties`
 --
 
@@ -134,7 +167,7 @@ CREATE TABLE `properties` (
   `slug` varchar(200) DEFAULT NULL,
   `value` float DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -143,7 +176,7 @@ CREATE TABLE `properties` (
 
 LOCK TABLES `properties` WRITE;
 /*!40000 ALTER TABLE `properties` DISABLE KEYS */;
-INSERT INTO `properties` VALUES (1,'diagonal',25),(2,'diagonal',32),(3,'thickness',1.5),(4,'thickness',2);
+INSERT INTO `properties` VALUES (1,'diagonal',25),(2,'diagonal',32),(3,'thickness',1.5),(4,'thickness',2),(5,'length',50),(6,'width',40);
 /*!40000 ALTER TABLE `properties` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -187,4 +220,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-26 14:23:03
+-- Dump completed on 2025-01-10 14:55:29

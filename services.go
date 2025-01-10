@@ -231,6 +231,13 @@ func getPrice(config interface{}, typeSlug string, quantity float32, elementSlug
 			}
 		case "bolts":
 			return quantity * getBoltsPrice(elementSlug)
+		case "profile":
+			switch cnf["galvanize"] {
+			case "fabric":
+				return quantity * getProfileFabricPrice(cnf)
+			case "warm":
+				return quantity * getProfileWarmPrice(cnf)
+			}
 		}
 	}
 	return 0
@@ -281,10 +288,12 @@ func getPriceFromRequest(c *gin.Context) interface{} {
 func elementFactory(resultOfCalculates map[string]float32, configs *map[string]string) []Category {
 	khorshidiNumber := getNumber(resultOfCalculates, "khorshidi")
 	pipeConfig := (*configs)["pipe"]
+	profileConfig := (*configs)["profile"]
+	profilePipeConfig := (*configs)["profile_pipe"]
 	boltsConfig := (*configs)["bolts"]
 	var x = []Category{
 		{"لوله ها و المان ها", []Element{
-			{"ستون ها", getNumber(resultOfCalculates, "shaft"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaft"), "shaft"), pipeConfig, "shaft", "pipe"},
+			{"ستون ها", getNumber(resultOfCalculates, "shaft"), "عدد", getPrice(profileConfig, "profile", getNumber(resultOfCalculates, "shaft"), "shaft"), profileConfig, "shaft", "profile"},
 			{"کمان ها", getNumber(resultOfCalculates, "bow"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "bow"), "bow"), pipeConfig, "bow", "pipe"},
 			{"وتر ها", getNumber(resultOfCalculates, "chord"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "chord"), "chord"), pipeConfig, "chord", "pipe"},
 			{"المان 267cm", getNumber(resultOfCalculates, "267cmElements"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "267cmElements"), "267cmElement"), pipeConfig, "267cmElements", "pipe"},
@@ -331,7 +340,7 @@ func elementFactory(resultOfCalculates map[string]float32, configs *map[string]s
 			{"رابط لوله شفت", getNumber(resultOfCalculates, "shaftPipeConnector"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "shaftPipeConnector"), "shaftPipeConnector"), pipeConfig, "shaftPipeConnector", "pipe"},
 			{"رابط گلپیچ", getNumber(resultOfCalculates, "golpich"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "golpich"), "golpich"), pipeConfig, "golpich", "pipe"},
 			{" تعداد پروفیل H سرپنجره", getNumber(resultOfCalculates, "headOfWindowH"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "headOfWindowH"), "headOfWindowH"), pipeConfig, "headOfWindowH", "pipe"},
-			{"دستک پنجره", getNumber(resultOfCalculates, "windowPicket"), "عدد", getPrice(pipeConfig, "pipe", getNumber(resultOfCalculates, "windowPicket"), "windowPicket"), pipeConfig, "windowPicket", "pipe"},
+			{"دستک پنجره", getNumber(resultOfCalculates, "windowPicket"), "عدد", getPrice(profilePipeConfig, "profile_pipe", getNumber(resultOfCalculates, "windowPicket"), "windowPicket"), profilePipeConfig, "windowPicket", "profile_pipe"},
 			{"بست LOF", getNumber(resultOfCalculates, "LOF"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "LOF"), "LOF"), pipeConfig, "LOF", "bolts"},
 			{"بست اکسل", getNumber(resultOfCalculates, "excel"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "excel"), "excel"), pipeConfig, "excel", "bolts"},
 			{"بست پارویی", getNumber(resultOfCalculates, "rowing"), "عدد", getPrice(boltsConfig, "bolts", getNumber(resultOfCalculates, "rowing"), "rowing"), pipeConfig, "rowing", "bolts"},

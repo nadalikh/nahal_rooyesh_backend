@@ -152,6 +152,45 @@ func addFabric(c *gin.Context) {
 	}
 	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت اضافه شد", Data: []string{""}})
 }
+func addProfileFabric(c *gin.Context) {
+	var priceDTO struct {
+		Width     int `json:"width"`
+		Length    int `json:"length"`
+		Thickness int `json:"thickness"`
+		Price     int `json:"price"`
+	}
+	type ProfileFabricPricDTO struct {
+		ID          int `json:"id"`
+		WidthId     int `json:"width_id"`
+		LengthId    int `json:"length_id"`
+		ThicknessId int `json:"thickness_id"`
+		Price       int `json:"price"`
+	}
+	result, err := db.Query("select * from profile_fabric")
+	if err != nil {
+		panic(err)
+	}
+
+	err = c.BindJSON(&priceDTO)
+	//check for repetitive prices
+	var data ProfileFabricPricDTO
+	for result.Next() {
+		err = result.Scan(&data.ID, &data.WidthId, &data.Price, &data.ThicknessId, &data.LengthId)
+		if data.WidthId == priceDTO.Width && data.ThicknessId == priceDTO.Thickness && data.LengthId == priceDTO.Length {
+
+			c.IndentedJSON(400, Response[string]{"خطای ولیدیشن", []string{"اطلاعات تکراری است"}})
+			return
+		}
+	}
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Query("insert into profile_fabric (width_id, thickness_id, price, length_id) values (?, ?, ?, ?);", priceDTO.Width, priceDTO.Thickness, priceDTO.Price, priceDTO.Length)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت اضافه شد", Data: []string{""}})
+}
 func addWarm(c *gin.Context) {
 	var priceDTO struct {
 		Diagonal    int    `json:"diagonal"`
@@ -230,10 +269,40 @@ func getFabric(c *gin.Context) interface{} {
 	}
 	return list
 }
+func getProfileFabric(c *gin.Context) interface{} {
+	type ProfileFabricPricDTO struct {
+		ID          int `json:"id"`
+		WidthId     int `json:"width_id"`
+		LengthId    int `json:"length_id"`
+		ThicknessId int `json:"thickness_id"`
+		Price       int `json:"price"`
+	}
+
+	result, err := db.Query("select * from profile_fabric")
+	if err != nil {
+		panic(err)
+	}
+	list := make([]ProfileFabricPricDTO, 0)
+	var data ProfileFabricPricDTO
+	for result.Next() {
+		err = result.Scan(&data.ID, &data.Price, &data.ThicknessId, &data.WidthId, &data.LengthId)
+		list = append(list, data)
+	}
+	return list
+}
 func removeFabricPrice(c *gin.Context) {
 	id := c.Param("id")
 
 	_, err = db.Query("delete from fabric where id = ?  ", id)
+	if err != nil {
+		panic(err)
+	}
+	c.IndentedJSON(200, Response[string]{Message: "قیمت با موفقیت حذف شد ", Data: []string{""}})
+}
+func removeProfileFabricPrice(c *gin.Context) {
+	id := c.Param("id")
+
+	_, err = db.Query("delete from profile_fabric where id = ?  ", id)
 	if err != nil {
 		panic(err)
 	}
@@ -269,6 +338,31 @@ func getFabricPipePrice(cnf map[string]interface{}, slug string) float32 {
 	default:
 		return 0
 	}
+}
+func getProfileFabricPrice(cnf map[string]interface{}) float32 {
+	fabricConfig := cnf["props"].(map[string]interface{})
+	result, err := db.Query("select price, value from ( select * from profile_fabric )kf inner join  properties kp on kf.width_id = kp.id or kf.thickness_id = kp.id or kf.length_id = kp.id  where thickness_id =?  and width_id=? and length_id=?", fabricConfig["thickness_id"], fabricConfig["width_id"], fabricConfig["length_id"])
+	var price struct {
+		price float32
+		value float32
+	}
+	var multipled float32
+	multipled = 1
+	for result.Next() {
+		err := result.Scan(&price.price, &price.value)
+		if err != nil {
+			panic(err)
+		}
+		multipled *= price.value
+	}
+	multipled = 1
+	if err != nil {
+		panic(err)
+	}
+	//return price.price * KHORSHIDI_LENGTH
+	fmt.Println("fabric price", price.price)
+	return price.price * float32(fabricConfig["length"].(float64)) / 100
+
 }
 func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 	warmConfig := cnf["props"].(map[string]interface{})
@@ -328,6 +422,63 @@ func getPipeWarmPrice(cnf map[string]interface{}, slug string) float32 {
 		return 0
 	}
 	//result, err := db.Query("select price from khorshidi_fabric where digonal_id = ? and thickness_id = ?", DTOConfig.fabric.)
+}
+func getProfileWarmPrice(cnf map[string]interface{}) float32 {
+	warmConfig := cnf["props"].(map[string]interface{})
+	//result, err := db.Query("select price, slug, value from ( select * from warm  where element_slug=?)kf inner join  properties kp on kf.diagonal_id = kp.id or kf.thickness_id = kp.id where thickness_id =?  and diagonal_id=?", slug, warmConfig["thickness_id"], warmConfig["diagonal_id"])
+	resultIronPrice, err := db.Query("select value from iron_properties  where id =1")
+	var ironPrice struct {
+		Value float32 `json:"value"`
+	}
+	for resultIronPrice.Next() {
+		err := resultIronPrice.Scan(&ironPrice.Value)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err = resultIronPrice.Close()
+	if err != nil {
+		panic(err)
+	}
+	result, err := db.Query("select value, slug from properties  where id =?  or id=? or id=?", warmConfig["thickness_id"], warmConfig["width_id"], warmConfig["length_id"])
+
+	var price struct {
+		//price float32
+		slug  string
+		value float64
+	}
+	var space float64
+	space = 1
+
+	W := float64(1.0)
+	L := float64(1.0)
+	T := float64(1.0)
+	for result.Next() {
+		//err := result.Scan(&price.price, &price.slug, &price.value)
+		err := result.Scan(&price.value, &price.slug)
+		if err != nil {
+			panic(err)
+		}
+		if price.slug == "width" {
+			W = price.value / 10 //convert to cm
+		} else if price.slug == "thickness" {
+			T = price.value / 10 //convert to cm
+		} else if price.slug == "length" {
+			L = price.value / 10
+		}
+	}
+
+	space = (W * L) - ((W - (2 * T)) * (L - (2 * T)))
+	fmt.Println("space profile", space)
+	fmt.Println("space profile", W)
+	fmt.Println("space profile", L)
+	fmt.Println("space profile", T)
+	if err != nil {
+		panic(err)
+	}
+	//return price.price * KHORSHIDI_LENGTH * multipled * 3.14 * IRON_DENSITY
+	//			Gram            CM				  CM				CM^3
+	return float32(ironPrice.Value) / 1000 * float32(warmConfig["length"].(float64)) * float32(space) * IRON_DENSITY
 }
 
 func getBoltsPrice(elementSlug string) float32 {
