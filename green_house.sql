@@ -62,7 +62,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'pipe','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}'),(2,'bolts','{}'),(3,'profile','{\"galvanize\":\"fabric\", \"props\" : {\"width_id\":6, \"length_id\":5 ,\"thickness_id\":3, \"length\":100}}'),(4,'profile_pipe','{\"base\":\"fabric\"}');
+INSERT INTO `config` VALUES (1,'pipe','{\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}'),(2,'bolts','{}'),(3,'profile','{\"galvanize\":\"fabric\", \"props\" : {\"width_id\":6, \"length_id\":5 ,\"thickness_id\":3, \"length\":100}}'),(4,'profile_pipe','{\"base\":\"profile\", \"pipe\" : {\"galvanize\":\"fabric\", \"props\" : {\"diagonal_id\":1, \"thickness_id\":3, \"length\":100}}, \"profile\" :{\"galvanize\":\"fabric\", \"props\" : {\"width_id\":6, \"length_id\":5 ,\"thickness_id\":3, \"length\":100}} }');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -220,4 +220,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-01-10 14:55:29
+-- Dump completed on 2025-01-16 12:33:45
